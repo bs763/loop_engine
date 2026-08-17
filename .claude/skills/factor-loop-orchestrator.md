@@ -27,5 +27,18 @@ description: factor_loop_engine 的连续调度编排器例程。链式触发(�
 - 高风险动作(删 checkpoint、改 .env、动 alphalab 配置)→ 先问用户。
 - 全程不过夜狂跑:注意 DeepSeek 余额与 alphalab rqdatac 并发。
 
+## 每日异地备份(2026-08-17 增,远程 github.com/bs763/loop_engine)
+夜间窗口(≥21:00)当天的**第一轮**完成后,做一次备份提交并推送:
+
+```
+git add -A; git add -f output/checkpoint.json
+git commit -m "夜间备份: iter=<轮次> stored=<库存数>(自动)"
+git push          # 凭据已存 Windows 凭据管理器,免交互
+```
+
+git 不在 PATH 时用完整路径 `& "C:\Program Files\Git\cmd\git.exe" <子命令>`。
+push 失败(网络/权限)不阻塞跑轮,下一轮再试;连续失败在当日汇报里提一句。
+当天已备份过则跳过(看 `git log -1 --format=%cd` 是否今天)。
+
 ## 切回最省模式
 若只是想无人值守纯挖因子(不需自适应),改用 OS cron 直跑 `run_round_cli.py`(方式 A,零调度 token),见对接指南 §2-A。
