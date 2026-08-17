@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
-"""LLM provider:统一接口 + OpenAI 兼容实现(DeepSeek 生成 / 智谱 GLM 审查)+ Mock。
+"""LLM provider:统一接口 + OpenAI/Anthropic 兼容实现 + Mock。
 
-指南 §4 决策:生成端默认 DeepSeek-v4,机制引导 + 审查精判用智谱 GLM;调用统一封装为可切换 provider。
+当前配置(2026-08-17 起,见 .env):生成端与审查端均走智谱 GLM-5.3(Coding Plan,
+Anthropic 兼容端点 glm-anthropic);DeepSeek 配置保留备用(OpenAI 兼容,按量计费)。
 本模块把「调谁、怎么调」解耦:所有 provider 实现 complete(prompt) -> str,上层(mechanisms.py)不关心具体厂商。
 
-API key 通过环境变量注入(阶段 4 用 Mock 跑通,真实 key 由用户提供):
-  DeepSeek: DEEPSEEK_API_KEY   (base_url https://api.deepseek.com)
-  智谱 GLM: GLM_API_KEY        (base_url https://open.bigmodel.cn/api/paas/v4,OpenAI 兼容)
+API key 通过环境变量注入:
+  智谱 GLM: GLM_API_KEY   (Anthropic 端点 /api/anthropic = Coding Plan;v4 端点 = 按量,计费独立)
+  DeepSeek: DEEPSEEK_API_KEY (base_url https://api.deepseek.com)
 """
 from __future__ import annotations
 

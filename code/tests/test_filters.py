@@ -81,14 +81,17 @@ def test_fail_rolling():
 
 def test_fail_corr():
     m = good_metrics()
-    r = apply_filters(m, stored_ic_series=[m.ic_series])  # 与自身完全相关
+    strong = {"ic_mean": 0.08, "icir": 1.0, "monotonicity": 0.98, "long_excess_annual": 0.15}
+    old = {"hash": "old", "ic_series": m.ic_series, "metrics": strong}
+    r = apply_filters(m, stored_factors=[old])   # 与自身完全相关且库存更优 → 拒
     assert not r.passed and any("IC相关性" in x for x in r.reasons)
 
 
 def test_corr_below_threshold_ok():
     rng = np.random.default_rng(1)
     other = rng.normal(0, 0.08, size=1942).tolist()  # 几乎不相关
-    r = apply_filters(good_metrics(), stored_ic_series=[other])
+    old = {"hash": "o2", "ic_series": other, "metrics": {}}
+    r = apply_filters(good_metrics(), stored_factors=[old])
     assert r.passed, r.reasons
 
 

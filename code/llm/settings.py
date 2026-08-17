@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
-"""LLM 运行配置:从 .env 加载密钥,按 token 策略分配 provider。
+"""LLM 运行配置:从 .env 加载密钥,构造生成端/审查端 provider。
 
-token 策略(用户敲定,2026-08-11):**生成(机制引导,重活)→ GLM;审查精判(轻活)→ DeepSeek**。
-目的:把 Python 侧 token 大头压到 GLM,DeepSeek 仅承担少量审查调用,最小化 DeepSeek 花费。
+当前分配(2026-08-17 起,由 .env 的 GENERATION_PROVIDER / REVIEW_PROVIDER 控制):
+生成(机制引导)与审查(入库前 LLM 终审,仅 1-2 次/轮)均默认 glm——走智谱
+Anthropic 兼容端点(Coding Plan 订阅,与 Claude Code 同 key);deepseek 保留备用。
 
 .env(factor_loop_engine/.env,gitignored):
-  GLM_API_KEY / GLM_MODEL          生成端(GLM)
-  DEEPSEEK_API_KEY / DEEPSEEK_MODEL 审查端(DeepSeek)
+  GLM_API_KEY / GLM_MODEL          智谱(Anthropic 端点,Coding Plan)
+  DEEPSEEK_API_KEY / DEEPSEEK_MODEL 备用
 
 用法:
   from llm.settings import generation_provider, review_provider
-  node = generate_expression(generation_provider(), fields)   # 走 GLM
-  accept, reason = review_expression(review_provider(), node) # 走 DeepSeek
+  node = generate_expression(generation_provider(), fields)
+  accept, reason = review_expression(review_provider(), node)  # LLM 终审(过滤16)
 """
 from __future__ import annotations
 

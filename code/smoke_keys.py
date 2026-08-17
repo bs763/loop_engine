@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""LLM 连通性验证:对 GLM(生成)/ DeepSeek(审查)各发 1 条最小请求,验证 key + 模型名。
+"""LLM 连通性验证:对生成端/审查端各发 1 条最小请求,验证 key + 模型名(按 .env 当前分配)。
 
-跑法:  uv run --directory factor_loop_engine code/llm/smoke_keys.py
+跑法:  uv run code/smoke_keys.py
 失败会打印 HTTP 状态与 API 错误体,便于定位(多半是模型名 / endpoint 问题)。
 """
 from __future__ import annotations
@@ -29,9 +29,9 @@ def smoke(name: str, provider, prompt: str = "只回复两个字:在的") -> boo
 
 def main() -> None:
     print("=== LLM 连通性验证(各 1 条最小请求)===")
-    ok_glm = smoke("GLM 生成  ", generation_provider())
-    ok_ds = smoke("DeepSeek 审查", review_provider())
-    print(f"\n结果:GLM={'OK ✓' if ok_glm else 'FAIL ✗'}   DeepSeek={'OK ✓' if ok_ds else 'FAIL ✗'}")
+    ok_gen = smoke("生成端", generation_provider())
+    ok_rev = smoke("审查端", review_provider())
+    print(f"\n结果:生成端={'OK ✓' if ok_gen else 'FAIL ✗'}   审查端={'OK ✓' if ok_rev else 'FAIL ✗'}")
 
 
 if __name__ == "__main__":

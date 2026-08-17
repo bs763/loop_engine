@@ -98,7 +98,6 @@ def apply_filters(
     *,
     fsa=None,
     node=None,
-    stored_ic_series: list | None = None,
     stored_factors: list | None = None,
     failed_hashes: set | None = None,
     expr_hash: str | None = None,
@@ -203,20 +202,6 @@ def apply_filters(
             else:
                 best_corr = max(c for c, _ in correlated)
                 reasons.append(f"9.IC相关性={best_corr:.3f}≥{ic_corr_max}")
-    elif stored_ic_series and metrics.ic_series:
-        # 旧版(仅 IC 序列,无质量比较)——向后兼容
-        arr = np.asarray(metrics.ic_series, dtype=float)
-        max_corr = 0.0
-        for s in stored_ic_series:
-            b = np.asarray(s, dtype=float)
-            n = min(len(arr), len(b))
-            if n < 5:
-                continue
-            c = np.corrcoef(arr[-n:], b[-n:])[0, 1]
-            if not np.isnan(c) and abs(c) > max_corr:
-                max_corr = abs(c)
-        if max_corr >= ic_corr_max:
-            reasons.append(f"9.IC相关性={max_corr:.3f}≥{ic_corr_max}")
 
     # 10) FSA 结构去重
     if fsa is not None and node is not None:

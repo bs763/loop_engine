@@ -3,7 +3,7 @@
 
   mock 模式(离线,无 LLM / 无 alphalab):
       uv run --directory factor_loop_engine code/run_round_cli.py --mock --n 100
-  真实模式(DeepSeek 生成 + alphalab 回测,2018-2025):
+  真实模式(GLM-5.3 生成 + LLM 终审 + alphalab 回测,2018-2025):
       uv run --directory factor_loop_engine code/run_round_cli.py --n 100
 
 每轮:生成 N 候选 → 审查五过滤 → 回测 → 十一项过滤 → 入库 → 检查点原子落盘(断点续跑)。
