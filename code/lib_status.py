@@ -52,6 +52,16 @@ def main() -> None:
             m = f.get("metrics", {})
             print(f"  IC={m.get('ic_mean', 0):.4f} 多空年化={m.get('ls_annual', 0):.2%} "
                   f"夏普={m.get('ls_sharpe', 0):.2f} Calmar={m.get('calmar', 0):.2f} | {f.get('expr')}")
+        # IS vs OOS 对比(样本外只报告,不参与筛选;老因子无 oos_metrics 则跳过)
+        oos_rows = [(f, f["oos_metrics"]) for f in factors if f.get("oos_metrics")]
+        if oos_rows:
+            print(f"IS→OOS 衰减(样本外,OOS_END~):")
+            for f, om in oos_rows:
+                im = f.get("metrics", {})
+                print(f"  IC {im.get('ic_mean', 0):+.3f}→{om.get('ic_mean', float('nan')):+.3f}  "
+                      f"夏普 {im.get('ls_sharpe', 0):.2f}→{om.get('ls_sharpe', float('nan')):.2f}  "
+                      f"单调 {im.get('monotonicity', 0):.2f}→{om.get('monotonicity', float('nan')):.2f}"
+                      f" | {f.get('expr', '')[:46]}")
         _corr_report(factors)
 
 

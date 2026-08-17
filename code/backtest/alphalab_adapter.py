@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -20,10 +21,13 @@ import numpy as np
 import pandas as pd
 
 from backtest.interface import Evaluator, FactorMetrics
+from engine.config import IS_END, IS_START
 from paths import CACHE_DIR
 
 # 本机默认路径;换电脑用环境变量 ALPHALAB_DIR 覆盖(见 .env / .env.example)
 FALLBACK_ALPHALAB_DIR = r"C:\Users\Administrator\Desktop\因子检测操作步骤"
+
+IS_WINDOW = (IS_START, IS_END)   # 默认评测窗口 = 样本内(筛选/入库只看 IS)
 
 
 class AlphalabEvaluator(Evaluator):
@@ -32,7 +36,8 @@ class AlphalabEvaluator(Evaluator):
                  out_root: str | Path | None = None,
                  in_root: str | Path | None = None,
                  gate: bool = False, timeout: int = 600,
-                 keep_output: bool = False):
+                 keep_output: bool = False,
+                 window: tuple[str, str] | None = None):
         self.alphalab_dir = Path(alphalab_dir) if alphalab_dir else Path(
             os.environ.get("ALPHALAB_DIR", FALLBACK_ALPHALAB_DIR))
         self.config_yaml = Path(config_yaml) if config_yaml else self.alphalab_dir / "my.yaml"
@@ -42,6 +47,7 @@ class AlphalabEvaluator(Evaluator):
         self.gate = gate
         self.timeout = timeout
         self.keep_output = keep_output   # True=保留回测结果目录(默认 False:解析完即删,省盘)
+        self.window = window or IS_WINDOW   # 评测窗口(默认样本内 IS;OOS 用 window=(OOS_START, OOS_END))
 
     # ---- 可执行命令 ----
     def _exe_cmd(self) -> list[str]:
@@ -52,21 +58,44 @@ class AlphalabEvaluator(Evaluator):
         return [str(py), "-m", "alphalab"]
 
     # ---- 写因子 parquet(alphalab 输入格式)----
-    def write_panel(self, panel: pd.DataFrame, name: str) -> Path:
-        from engine.config import BACKTEST_END, BACKTEST_START
+    def write_panel(self, panel: pd.DataFrame, name: str,
+                    window: tuple[str, str] | None = None) -> Path:
+        start, end = window or self.window
         df = panel.copy()
         df.index.name = "date"
         df.columns = df.columns.astype(str)
         df = df.astype("float32")
-        df = df.loc[BACKTEST_START:BACKTEST_END]   # 只回测 2018-2025(warmup 部分不回测)
+        df = df.loc[start:end]   # 只回测指定窗口(warmup 部分不回测;IS/OOS 由调用方定)
         self.in_root.mkdir(parents=True, exist_ok=True)
         path = self.in_root / f"{name}.parquet"
         df.to_parquet(path)  # index.name='date' → 写出 'date' 列 + 股票列
         return path
 
+    # ---- 按窗口派生配置 ----
+    def _config_for_window(self) -> Path:
+        """把基准 yaml 的 sample.start/end 替换为评测窗口,派生 yaml 缓存复用。
+
+        alphalab 要求因子宽表覆盖其配置 sample 的每个交易日(缺一即报错),因此
+        IS/OOS 窗口回测必须用对应 sample 的配置(2026-08-17 切分;曾因沿用全窗口
+        配置导致 IS parquet 全部被拒)。基准 yaml 中 start:/end: 仅出现在 sample 段。
+        """
+        start, end = self.window
+        tag = f"{start}_{end}"
+        derived = CACHE_DIR / "alphalab_cfg" / f"alphalab_{tag}.yaml"
+        if derived.exists():
+            return derived
+        text = self.config_yaml.read_text(encoding="utf-8")
+        text, n1 = re.subn(r"(?m)^(\s*start:\s*)\S+", rf"\g<1>{start}", text, count=1)
+        text, n2 = re.subn(r"(?m)^(\s*end:\s*)\S+", rf"\g<1>{end}", text, count=1)
+        if n1 != 1 or n2 != 1:
+            raise ValueError(f"基准 yaml 未找到 sample.start/end(改了 {n1}/{n2} 处):{self.config_yaml}")
+        derived.parent.mkdir(parents=True, exist_ok=True)
+        derived.write_text(text, encoding="utf-8")
+        return derived
+
     # ---- 跑 alphalab ----
     def _run(self, parquet: Path, outdir: Path, name: str) -> subprocess.CompletedProcess:
-        cmd = self._exe_cmd() + ["check", str(parquet), "-c", str(self.config_yaml),
+        cmd = self._exe_cmd() + ["check", str(parquet), "-c", str(self._config_for_window()),
                                  "-d", str(outdir), "-n", name]
         if self.gate:
             cmd.append("--gate")

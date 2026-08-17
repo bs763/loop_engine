@@ -46,7 +46,7 @@ def test_fail_year_negative():
 
 def test_fail_year_missing():
     m = good_metrics()
-    del m.annual_ls_return[2025]
+    del m.annual_ls_return[2023]      # IS 口径:2018-2023 每年都要有(2024/2025 在隔离带/OOS)
     r = apply_filters(m)
     assert not r.passed and any("缺年份" in x for x in r.reasons)
 

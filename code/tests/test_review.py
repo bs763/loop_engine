@@ -78,6 +78,40 @@ def test_returns_simplified_tree():
     assert t.to_str() == "zscore(sub(ma(close, 20), ma(low, 20)))"
 
 
+# ---------------- 过滤1b:add/mul 交换结合规范化(2026-08-17)----------------
+
+def test_simplify_flattens_and_orders_add():
+    """嵌套 add 展平 + 字典序规范:等价排列得到同一写法/同一 hash。"""
+    a = simplify(parse("add(rank_cs(log_mv), add(rank_cs(log_amount), zscore(ret)))"))
+    b = simplify(parse("add(zscore(ret), add(rank_cs(log_amount), rank_cs(log_mv)))"))
+    c = simplify(parse("add(add(rank_cs(log_amount), zscore(ret)), rank_cs(log_mv))"))
+    assert a.to_str() == b.to_str() == c.to_str()
+    assert a.expr_hash() == b.expr_hash() == c.expr_hash()
+
+
+def test_simplify_flattens_mul_not_sub():
+    """mul 同样规范化;sub 不交换,不得展平。"""
+    a = simplify(parse("mul(rank_cs(ret), mul(zscore(ret), rank_cs(log_mv)))"))
+    b = simplify(parse("mul(zscore(ret), mul(rank_cs(ret), rank_cs(log_mv)))"))
+    assert a.to_str() == b.to_str()
+    s = simplify(parse("sub(rank_cs(ret), sub(zscore(ret), rank_cs(log_mv)))"))
+    assert s.to_str() == "sub(rank_cs(ret), sub(zscore(ret), rank_cs(log_mv)))"
+
+
+def test_simplify_preserves_values():
+    """规范化只改写法不改数值:展平前后面板求值一致。"""
+    import numpy as np
+    import pandas as pd
+    from engine.expression import evaluate
+    idx = pd.date_range("2020-01-01", periods=6)
+    rng = np.random.default_rng(0)
+    panels = {f: pd.DataFrame(rng.normal(0, 1, (6, 3)), index=idx)
+              for f in ("ret", "log_mv", "log_amount")}
+    e1 = evaluate(simplify(parse("add(rank_cs(log_mv), add(rank_cs(log_amount), zscore(ret)))")), panels)
+    e2 = evaluate(parse("add(add(rank_cs(log_mv), rank_cs(log_amount)), zscore(ret))"), panels)
+    assert np.allclose(e1.to_numpy(), e2.to_numpy(), equal_nan=True)
+
+
 # ---------------- 过滤5:过度平滑/极值嵌套(2026-08-17,研报 §16)----------------
 
 def test_reject_oversmoothed_std_std():

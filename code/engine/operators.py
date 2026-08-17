@@ -50,7 +50,21 @@ def op_delta(p: pd.DataFrame, n: int) -> pd.DataFrame:
 
 
 def op_skew(p: pd.DataFrame, n: int) -> pd.DataFrame:
-    return p.rolling(n, min_periods=n).skew()
+    """n 日滚动偏度(调整 Fisher-Pearson G1,与 Series.skew() 同口径)。
+
+    不用 pandas rolling().skew():实测其在大量「窗口完整、方差非零」的窗口上返回 NaN
+    (2026-08-17 排查:2018-2025 adj_close 面板 53 万格,rolling=NaN 而 Series.skew() 正常),
+    导致 skew(·,40) 覆盖率被压到 54%。此处用滚动一/二/三阶矩和实现,语义精确等价。
+    """
+    s1 = p.rolling(n, min_periods=n).sum()
+    s2 = (p * p).rolling(n, min_periods=n).sum()
+    s3 = (p ** 3).rolling(n, min_periods=n).sum()
+    m2 = (s2 - s1 * s1 / n) / n
+    m3 = (s3 - 3.0 * s1 * s2 / n + 2.0 * s1 ** 3 / n ** 2) / n
+    with np.errstate(divide="ignore", invalid="ignore"):
+        g1 = m3 / m2.pow(1.5)          # m2=0(常数窗)→ 0/0=NaN,与 pandas 行为一致
+    adj = float(np.sqrt(n * (n - 1)) / (n - 2))   # G1 调整系数(窗口范围 ≥10,n>2 恒成立)
+    return g1 * adj
 
 
 def _ts_rank_last(w: np.ndarray) -> float:

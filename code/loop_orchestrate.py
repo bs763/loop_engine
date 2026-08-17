@@ -102,7 +102,7 @@ def run_round(*, checkpoint: Checkpoint, evolver: Evolver, evaluator: Evaluator,
               field_panels: dict[str, pd.DataFrame], fsa: FSA,
               fields: list[str], n_candidates: int = 100,
               parents: list | None = None, capture_ic_series: bool = True,
-              n_workers: int = 4, llm_reviewer=None) -> RoundStats:
+              n_workers: int = 4, llm_reviewer=None, oos_evaluator=None) -> RoundStats:
     """跑一轮。parents 默认从已入库因子解析(种子优先入库因子,见 M3)。
     n_workers>1 时回测(alphalab 子进程)并行;过滤+入库仍串行(#9 IC去重/#10 FSA 顺序敏感)。"""
     t0 = time.perf_counter()
@@ -183,10 +183,20 @@ def run_round(*, checkpoint: Checkpoint, evolver: Evolver, evaluator: Evaluator,
             if not accept:
                 fr = FilterResult(passed=False, reasons=[f"16.LLM终审拒:{why[:80]}"])
         if fr.passed:
+            # OOS 样本外指标(用户 2026-08-17):入库时算一次存档,**只报告、绝不参与筛选**
+            # (oos_evaluator 的评测窗口=OOS;失败不阻塞入库,记 None)
+            oos_metrics = None
+            if oos_evaluator is not None:
+                try:
+                    mo = oos_evaluator.evaluate(evaluate(node, field_panels), name="oos_" + h[:8])
+                    oos_metrics = _metrics_summary(mo)
+                except Exception:  # noqa: BLE001
+                    oos_metrics = None
             new_factor = {
                 "expr": node.to_str(), "hash": h, "skeleton": skeleton(node),
                 "ic_series": (m.ic_series if capture_ic_series else None),
                 "metrics": _metrics_summary(m),
+                "oos_metrics": oos_metrics,
             }
             if fr.replace_hashes:
                 # 高相关但综合质量全面更优 → 移除所有相关旧因子,再入库新因子

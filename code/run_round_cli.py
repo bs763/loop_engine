@@ -23,6 +23,7 @@ from adaptive import dynamic_budget, round_signals
 from backtest.alphalab_adapter import AlphalabEvaluator
 from backtest.mock import MockEvaluator
 from engine.checkpoint import Checkpoint
+from engine.config import OOS_END, OOS_START
 from engine.evolve import Evolver
 from engine.fsa import FSA
 from llm.mechanisms import make_evolve_llm_hook
@@ -98,14 +99,16 @@ def main() -> None:
     print(f"BUDGET: {breason} | mutate/crossover/perturb/random/llm = "
           f"{cfg.mutate}/{cfg.crossover}/{cfg.perturb}/{cfg.random}/{cfg.llm}")
 
-    gen_provider, rev_provider = None, None
+    gen_provider, rev_provider, oos_evaluator = None, None, None
     if args.mock:
         panels = _synth_panels()
         evaluator = MockEvaluator()
         evolver = Evolver(FIELDS, config=cfg, rng=np.random.default_rng())           # 无 llm_provider
     else:
         panels = _real_panels()
-        evaluator = AlphalabEvaluator(horizon=5, config_yaml=args.alphalab_config)
+        evaluator = AlphalabEvaluator(horizon=5, config_yaml=args.alphalab_config)   # 默认窗口=IS
+        oos_evaluator = AlphalabEvaluator(horizon=5, config_yaml=args.alphalab_config,
+                                          window=(OOS_START, OOS_END))               # 样本外,只存档
         gen_provider = generation_provider()
         rev_provider = review_provider()
         evolver = Evolver(FIELDS, config=cfg, rng=np.random.default_rng(),
@@ -115,7 +118,8 @@ def main() -> None:
     stats = run_round(checkpoint=cp, evolver=evolver, evaluator=evaluator,
                       field_panels=panels, fsa=fsa, fields=FIELDS,
                       n_candidates=args.n, n_workers=args.workers,
-                      llm_reviewer=rev_provider)  # None(mock)→跳过 LLM 终审
+                      llm_reviewer=rev_provider,      # None(mock)→跳过 LLM 终审
+                      oos_evaluator=oos_evaluator)    # None(mock)→跳过 OOS 存档
     print(stats)
     if stats.sample_reject_reasons:
         print("REJECTS:")

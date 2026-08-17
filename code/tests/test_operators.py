@@ -183,3 +183,27 @@ def test_leaf_panels_sanitized():
                                   columns=["A", "B"])}
     out = evaluate(Node.leaf("ret"), panels)
     assert np.isinf(out.to_numpy()).sum() == 0
+
+
+def test_skew_matches_series_skew():
+    """op_skew(滚动矩和实现)必须与 Series.skew() 逐窗一致,且不产生 pandas rolling
+    skew 的幽灵 NaN(2026-08-17 事故:rolling 版在完整窗口上大量返回 NaN)。"""
+    import numpy as np
+    import pandas as pd
+    from engine.operators import op_skew
+    rng = np.random.default_rng(7)
+    idx = pd.date_range("2020-01-01", periods=120, freq="B")
+    df = pd.DataFrame(rng.normal(10, 2, (120, 4)), index=idx)
+    df.iloc[:5, 0] = np.nan                      # 头部 NaN(warmup)
+    df.iloc[30, 1] = np.nan                      # 中间散点 NaN
+    r = op_skew(df, 20)
+    for i, j in [(25, 0), (60, 1), (119, 3), (60, 0)]:
+        win = df.iloc[i - 19:i + 1, j].dropna()
+        if len(win) == 20:
+            assert abs(r.iloc[i, j] - win.skew()) < 1e-9
+    # 完整窗口不得有幽灵 NaN
+    complete = df.rolling(20).count() == 20
+    assert not (complete & r.isna()).any().any()
+    # 常数窗口 → NaN(与 pandas 口径一致)
+    const = pd.DataFrame({"A": [3.0] * 30}, index=pd.date_range("2020-01-01", periods=30))
+    assert np.isnan(op_skew(const, 20).iloc[25, 0])

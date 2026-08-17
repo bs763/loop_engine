@@ -27,8 +27,25 @@ def _is_cs(node: Node) -> bool:
     return not node.is_leaf() and OP_REGISTRY[node.op]["kind"] == "cs"
 
 
+def _flatten_ac(node: Node, op: str) -> list[Node]:
+    """收集交换结合算子(add/mul)嵌套树的全部操作数(展平)。"""
+    args: list[Node] = []
+
+    def walk(n: Node) -> None:
+        if not n.is_leaf() and n.op == op:
+            for c in n.children:
+                walk(c)
+        else:
+            args.append(n)
+
+    walk(node)
+    return args
+
+
 def simplify(tree: Node) -> Node:
-    """简化(目前:折叠直接嵌套的截面算子,去外层保内层)。返回新树。"""
+    """简化:①折叠直接嵌套的截面算子;②add/mul 交换结合规范化(展平+字典序+左倾重建)——
+    同一数学结构只保留一种写法(add(A,add(B,C)) 与 add(B,add(A,C)) 此前是不同 hash,
+    各自浪费一次回测)。数值语义完全不变。返回新树。"""
     if tree.is_leaf():
         return tree
     children = [simplify(c) for c in tree.children]
@@ -36,6 +53,15 @@ def simplify(tree: Node) -> Node:
     # 截面算子的唯一子也是截面 → 去掉外层截面,保留内层
     if _is_cs(node) and _is_cs(node.children[0]):
         return node.children[0]
+    # add/mul 规范化:展平嵌套同类 → 字典序排序 → 左倾重建
+    if node.op in ("add", "mul") and len(node.children) == 2:
+        args = _flatten_ac(node, node.op)
+        if len(args) > 2:
+            args.sort(key=lambda s: s.to_str())
+            t = args[0]
+            for a in args[1:]:
+                t = Node(node.op, None, None, [t, a])
+            return t
     return node
 
 
