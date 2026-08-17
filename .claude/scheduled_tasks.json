@@ -1,0 +1,13 @@
+{
+  "tasks": [
+    {
+      "id": "77013aa7",
+      "cron": "2 18 17 8 *",
+      "prompt": "恢复 factor_loop_engine 因子挖掘 loop 链式调度(这是 18:00 高峰暂停结束后的唤醒)。项目根目录 C:\\Users\\Administrator\\Desktop\\codewhale\\factor_loop_engine。按项目 skill .claude\\skills\\factor-loop-orchestrator.md 的每轮六步执行:1) uv run code/lib_status.py 读状态,看 output/loop.log 末尾 SIGNALS 行;2) uv run code/run_round_cli.py --n 100 跑一轮(真实模式,脚本自带动态预算);3) 读本轮 STATUS/SIGNALS/LLM 健康行(LLM: 生成 ok../兜底../终审 ok..);4) 诊断(stuck_rounds≥8 且诊断无果→停;LLM 兜底/API错增多→查 AnthropicMessagesProvider;回测异常持续≥10→查 rqdatac/降 workers;alphalab 报错→查缓存/parquet 格式);5) 确认可复用经验才往 output/lessons.md 追加一行;6) 一句话汇报(已测/入库/Top IC/LLM 健康/是否记新教训)。完成一轮后立刻启动下一轮(链式)。每轮启动前查北京时间(机器时区已是 UTC+8):若进入高峰暂停窗口(每天含周末 9:00-12:00、14:00-18:00)则不再跑轮,用 CronCreate 排 durable 一次性唤醒(12:02 或 18:02,日期用当天实际日期)传入本提示词原样续链;夜间连跑到次日 9:00 前收尾时排次日 12:02 唤醒;连续≥8 轮无新因子且诊断无果→停下报告用户;高风险动作(删 checkpoint、改 .env、动 alphalab 配置)先问用户。",
+      "createdAt": 1786945496190,
+      "createdBySessionId": "2411cd2d-9be7-4469-9ca0-68be1f9c4981",
+      "createdByPid": 10412,
+      "createdByProcStart": "134314043229380751"
+    }
+  ]
+}

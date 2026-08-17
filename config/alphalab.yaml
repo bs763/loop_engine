@@ -1,0 +1,46 @@
+# AlphaLab 配置 —— 本项目专用副本(复制自 因子检测操作步骤/my.yaml,未改原文件)。
+# 为本项目提速做的两处改动:
+#   1) 删除 barra: {}        (不算 Barra 暴露,省时)
+#   2) horizons: [1,5,10,20] → [5]   (本项目只用 5 日换仓 horizon=5,~4 倍加速)
+# 字段口径见原 开发框架.md 第 9、11 节。
+
+sample:               # 检测区间(必填;须落在 init 预热区间内,超出入口即报错)
+  start: 2018-01-01   # 因子须覆盖区间内每个交易日,缺一天即报错;
+  end: 2025-12-31     # 区间外的行、非区间内中证全指成分的列,入口即裁掉
+
+filters:
+  universe: ["000985.XSHG"]   # 中证全指
+  remove_st: true
+  remove_suspended_next: true
+  remove_limit_up_open_next: true
+  min_listed_days: 365
+
+preprocess:
+  steps:
+    - winsorize:   {method: mad, n: 3, scale: 1.4826}
+    - standardize: {}
+    - neutralize:  {by: [industry, size]}   # 申万一级哑变量 + log(market_cap_3),无截距、不删1
+    - standardize: {}
+
+returns:
+  horizons: [5]
+
+ic:
+  decay_max_lag: 10
+
+group:
+  n_groups: 10
+  cost:
+    one_way_bps: 10
+
+report:
+  out: report.html
+  name:
+  description:
+
+data:
+  cache_dir: ~/.alphalab/cache
+
+direction:
+  mode: auto
+  ref: best_icir

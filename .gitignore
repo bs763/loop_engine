@@ -1,0 +1,17 @@
+# 密钥(绝不提交)
+.env
+
+# uv / Python
+.venv/
+__pycache__/
+*.pyc
+
+# 缓存(可重建,不提交)
+cache/
+
+# 运行时状态与产出(迭代产生/可重建,不提交;output 下的 .md 文档仍提交)
+output/checkpoint.json
+output/*.tmp
+output/factors/
+output/loop.log
+.pytest_cache/

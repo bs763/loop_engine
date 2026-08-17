@@ -1,0 +1,293 @@
+{
+ "kept": 16,
+ "removed": [
+  {
+   "expr": "add(std(rank_cs(log_mv), 20), zscore(max(min(up_shadow, 120), 5)))",
+   "hash": "21335d1285d584ca",
+   "reason": "结构违规:review:extreme_nesting(max∘min)",
+   "metrics": {
+    "ic_mean": 0.060323880873945,
+    "icir": 0.9449453820913096,
+    "ls_annual": 0.1726424068268581,
+    "ls_sharpe": 2.262233887276678,
+    "calmar": 2.2205765796457486,
+    "direction": -1,
+    "long_excess_annual": 0.0606794284531497,
+    "long_excess_sharpe": 1.088120000382751,
+    "monotonicity": 0.9878787878787878
+   }
+  },
+  {
+   "expr": "add(std(rank_cs(log_mv), 20), zscore(max(min(down_shadow, 120), 5)))",
+   "hash": "47daf66b1c784327",
+   "reason": "结构违规:review:extreme_nesting(max∘min)",
+   "metrics": {
+    "ic_mean": 0.0569093302964804,
+    "icir": 0.8743805920734353,
+    "ls_annual": 0.1782209420085834,
+    "ls_sharpe": 2.348686035694763,
+    "calmar": 2.3026312429765707,
+    "direction": -1,
+    "long_excess_annual": 0.072553121417761,
+    "long_excess_sharpe": 1.339825789278458,
+    "monotonicity": 0.9878787878787878
+   }
+  },
+  {
+   "expr": "add(std(std(zscore(log_amount), 5), 20), zscore(max(min(down_shadow, 120), 5)))",
+   "hash": "412b2e9ba26997f9",
+   "reason": "结构违规:review:oversmoothed(std∘std)",
+   "metrics": {
+    "ic_mean": 0.0388818506205485,
+    "icir": 0.8619280087429766,
+    "ls_annual": 0.0812314335693233,
+    "ls_sharpe": 1.9137509524002212,
+    "calmar": 1.9129549502939174,
+    "direction": -1,
+    "long_excess_annual": 0.0289895085423717,
+    "long_excess_sharpe": 0.8981323084898558,
+    "monotonicity": 1.0
+   }
+  },
+  {
+   "expr": "max(max(std(rank_cs(log_amount), 20), 40), 40)",
+   "hash": "cecda8e044becd15",
+   "reason": "结构违规:review:extreme_nesting(max∘max)",
+   "metrics": {
+    "ic_mean": 0.0311660261168606,
+    "icir": 0.6343984301743741,
+    "ls_annual": 0.1841713957254784,
+    "ls_sharpe": 2.90629718787126,
+    "calmar": 3.29243072786897,
+    "direction": -1,
+    "long_excess_annual": 0.0791190209785528,
+    "long_excess_sharpe": 1.7621034489622747,
+    "monotonicity": 0.9515151515151514
+   }
+  },
+  {
+   "expr": "add(std(add(rank_cs(log_mv), rank_cs(log_amount)), 20), zscore(max(min(hl_ratio, 120), 5)))",
+   "hash": "ff5f53c01d6f7205",
+   "reason": "结构违规:review:extreme_nesting(max∘min)",
+   "metrics": {
+    "ic_mean": 0.034717176024153,
+    "icir": 0.777141604218843,
+    "ls_annual": 0.1210488201647821,
+    "ls_sharpe": 1.9720839196964592,
+    "calmar": 1.6609238144888805,
+    "direction": -1,
+    "long_excess_annual": 0.0160337465832536,
+    "long_excess_sharpe": 0.3116386094898158,
+    "monotonicity": 0.9030303030303028
+   }
+  },
+  {
+   "expr": "add(rank_cs(std(log_amount, 80)), zscore(max(min(down_shadow, 120), 5)))",
+   "hash": "e2d809f918336cb5",
+   "reason": "结构违规:review:extreme_nesting(max∘min)",
+   "metrics": {
+    "ic_mean": 0.0431482261844626,
+    "icir": 0.6328923282160497,
+    "ls_annual": 0.104489167925075,
+    "ls_sharpe": 1.871061644267658,
+    "calmar": 1.70377324143963,
+    "direction": -1,
+    "long_excess_annual": 0.0458796361159588,
+    "long_excess_sharpe": 1.2593968290141944,
+    "monotonicity": 0.9636363636363636
+   }
+  },
+  {
+   "expr": "add(std(add(rank_cs(hl_ratio), rank_cs(log_amount)), 20), zscore(max(min(up_shadow, 120), 5)))",
+   "hash": "a538b5fa1f9f3806",
+   "reason": "结构违规:review:extreme_nesting(max∘min)",
+   "metrics": {
+    "ic_mean": 0.0459085045629473,
+    "icir": 0.9656987985882948,
+    "ls_annual": 0.090204600981294,
+    "ls_sharpe": 2.2390598813356,
+    "calmar": 2.5825400926631294,
+    "direction": -1,
+    "long_excess_annual": 0.0202173989069511,
+    "long_excess_sharpe": 0.944137744638002,
+    "monotonicity": 1.0
+   }
+  },
+  {
+   "expr": "add(std(rank_cs(log_mv), 20), ma(std(rank_ts(adj_high, 20), 5), 250))",
+   "hash": "fba2e5fa6afac9a4",
+   "reason": "结构违规:review:oversmoothed(ma∘std)",
+   "metrics": {
+    "ic_mean": 0.0350498956606575,
+    "icir": 0.7777758070771815,
+    "ls_annual": 0.2238352775031986,
+    "ls_sharpe": 3.4584550959046823,
+    "calmar": 4.856638446149094,
+    "direction": -1,
+    "long_excess_annual": 0.0715665759214261,
+    "long_excess_sharpe": 2.555279069591367,
+    "monotonicity": 0.9878787878787878
+   }
+  },
+  {
+   "expr": "add(rank_cs(log_mv), std(std(zscore(log_amount), 5), 20))",
+   "hash": "00c431245acc5d3e",
+   "reason": "结构违规:review:oversmoothed(std∘std)",
+   "metrics": {
+    "ic_mean": 0.0375636962995665,
+    "icir": 0.5525725085334586,
+    "ls_annual": 0.2478868112223067,
+    "ls_sharpe": 3.1008693737639725,
+    "calmar": 2.2345597235475196,
+    "direction": -1,
+    "long_excess_annual": 0.1029105690670424,
+    "long_excess_sharpe": 2.5418305305252153,
+    "monotonicity": 1.0
+   }
+  },
+  {
+   "expr": "add(rank_cs(std(rank_cs(log_amount), 20)), add(rank_cs(log_amount), rank_cs(max(hl_ratio, 5))))",
+   "hash": "07e5bba3cc61de2f",
+   "reason": "同构家族裁剪(共8个保2):rank_cs(std(rank_cs(FLD), N))",
+   "metrics": {
+    "ic_mean": 0.0589291835204375,
+    "icir": 0.9994110161599142,
+    "ls_annual": 0.293083358885134,
+    "ls_sharpe": 3.63527257204693,
+    "calmar": 4.198738478826575,
+    "direction": -1,
+    "long_excess_annual": 0.0633901472199485,
+    "long_excess_sharpe": 1.4272954387610213,
+    "monotonicity": 0.9878787878787878
+   }
+  },
+  {
+   "expr": "add(rank_cs(std(rank_cs(log_amount), 20)), rank_cs(skew(mul(adj_low, adj_high), 120)))",
+   "hash": "d037a21802be0113",
+   "reason": "同构家族裁剪(共8个保2):rank_cs(std(rank_cs(FLD), N))",
+   "metrics": {
+    "ic_mean": 0.042580562504828,
+    "icir": 0.8254640212736702,
+    "ls_annual": 0.2135652020263336,
+    "ls_sharpe": 3.145157071803549,
+    "calmar": 5.475997758935621,
+    "direction": -1,
+    "long_excess_annual": 0.0754027838983335,
+    "long_excess_sharpe": 1.70223628981068,
+    "monotonicity": 1.0
+   }
+  },
+  {
+   "expr": "add(rank_cs(std(rank_cs(log_mv), 20)), rank_cs(intraday))",
+   "hash": "b7ff93c640d8edac",
+   "reason": "同构家族裁剪(共8个保2):rank_cs(std(rank_cs(FLD), N))",
+   "metrics": {
+    "ic_mean": 0.0534488977365725,
+    "icir": 0.8122192597977862,
+    "ls_annual": 0.2364021032422447,
+    "ls_sharpe": 3.184231563404033,
+    "calmar": 3.3102060119330456,
+    "direction": -1,
+    "long_excess_annual": 0.0332419846991565,
+    "long_excess_sharpe": 0.9833171512560629,
+    "monotonicity": 1.0
+   }
+  },
+  {
+   "expr": "add(rank_cs(max(amplitude, 60)), rank_cs(std(rank_cs(amplitude), 80)))",
+   "hash": "45084210c06661ac",
+   "reason": "同构家族裁剪(共8个保2):rank_cs(std(rank_cs(FLD), N))",
+   "metrics": {
+    "ic_mean": 0.0463825899220325,
+    "icir": 0.7458460203056041,
+    "ls_annual": 0.1716419890352789,
+    "ls_sharpe": 1.9299778898579307,
+    "calmar": 1.823493727388827,
+    "direction": -1,
+    "long_excess_annual": 0.0456173131020776,
+    "long_excess_sharpe": 0.7527298787506305,
+    "monotonicity": 0.9757575757575756
+   }
+  },
+  {
+   "expr": "add(rank_cs(std(rank_cs(log_mv), 20)), rank_cs(std(rank_ts(adj_low, 60), 80)))",
+   "hash": "815ee7235ac96e30",
+   "reason": "同构家族裁剪(共8个保2):rank_cs(std(rank_cs(FLD), N))",
+   "metrics": {
+    "ic_mean": 0.0391972152047818,
+    "icir": 0.6821289742141357,
+    "ls_annual": 0.1612219837415855,
+    "ls_sharpe": 2.4788053399234933,
+    "calmar": 2.4777132868229526,
+    "direction": -1,
+    "long_excess_annual": 0.063319586460838,
+    "long_excess_sharpe": 2.0142215618182058,
+    "monotonicity": 1.0
+   }
+  },
+  {
+   "expr": "add(rank_cs(std(rank_cs(log_amount), 20)), add(rank_cs(log_mv), rank_cs(hl_ratio)))",
+   "hash": "71b204e2c825c34a",
+   "reason": "同构家族裁剪(共8个保2):rank_cs(std(rank_cs(FLD), N))",
+   "metrics": {
+    "ic_mean": 0.0406334361048513,
+    "icir": 0.6706636040503487,
+    "ls_annual": 0.1977408171133781,
+    "ls_sharpe": 3.274920311522753,
+    "calmar": 2.4937044755307163,
+    "direction": -1,
+    "long_excess_annual": 0.046921049578448,
+    "long_excess_sharpe": 1.4397197192357634,
+    "monotonicity": 1.0
+   }
+  },
+  {
+   "expr": "add(zscore(std(rank_cs(log_amount), 20)), zscore(max(log_mv, 5)))",
+   "hash": "77beca23a6a320ac",
+   "reason": "同构家族裁剪(共3个保2):zscore(std(rank_cs(FLD), N))",
+   "metrics": {
+    "ic_mean": 0.0418791648863434,
+    "icir": 0.824744349721916,
+    "ls_annual": 0.2835497778861071,
+    "ls_sharpe": 3.827419985365677,
+    "calmar": 5.540914807552976,
+    "direction": -1,
+    "long_excess_annual": 0.118312262284866,
+    "long_excess_sharpe": 2.172359928433847,
+    "monotonicity": 1.0
+   }
+  },
+  {
+   "expr": "add(rank_cs(add(rank_cs(log_mv), rank_cs(log_amount))), rank_cs(roc(rank_cs(hl_ratio), 10)))",
+   "hash": "1c4056ca7c3ccd54",
+   "reason": "同构家族裁剪(共3个保2):add(rank_cs(FLD), rank_cs(FLD))",
+   "metrics": {
+    "ic_mean": 0.0399516282375819,
+    "icir": 0.6531905114216001,
+    "ls_annual": 0.1040952775163301,
+    "ls_sharpe": 1.6141518468634657,
+    "calmar": 1.182356127574622,
+    "direction": -1,
+    "long_excess_annual": 0.0108604396204396,
+    "long_excess_sharpe": 0.3888641260473237,
+    "monotonicity": 1.0
+   }
+  },
+  {
+   "expr": "add(max(rank_cs(skew(hl_ratio, 120)), 20), add(roc(rank_cs(log_mv), 60), std(rank_cs(log_amount), 20)))",
+   "hash": "354cf26b2f9c65b7",
+   "reason": "同构家族裁剪(共3个保2):add(roc(rank_cs(FLD), N), std(rank_cs(FLD), ",
+   "metrics": {
+    "ic_mean": 0.0358179104036991,
+    "icir": 0.6228691085496696,
+    "ls_annual": 0.110135199000884,
+    "ls_sharpe": 1.5521200094710312,
+    "calmar": 1.0035076971930081,
+    "direction": -1,
+    "long_excess_annual": 0.059566526802584,
+    "long_excess_sharpe": 1.4275535704582747,
+    "monotonicity": 0.9636363636363636
+   }
+  }
+ ]
+}

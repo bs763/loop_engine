@@ -1,0 +1,29 @@
+[project]
+name = "factor-loop-engine"
+version = "0.1.0"
+description = "Loop+Engineering 自动化因子发现引擎(中金研报复现)— 核心算法层纯 Python + OSS/duckdb 取数"
+requires-python = ">=3.11"
+dependencies = [
+    "duckdb>=1.5",
+    "pandas>=2.0",
+    "numpy>=1.26",
+    "pyarrow>=15",
+    "requests>=2.28",
+]
+
+[tool.uv]
+package = false   # 虚拟项目:不构建/安装本地包,仅管理依赖(避免中文项目路径写入 venv .pth 导致 site 崩溃)
+# 镜像:阿里云公网源(证书有效)。ECS 内网源证书域名不匹配。
+index-url = "https://mirrors.aliyun.com/pypi/simple/"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+# 扁平包:把 code/ 放上 sys.path,测试里 from engine... / from data_layer... 可直接导入
+pythonpath = ["code"]
+testpaths = ["code/tests"]
+python_files = ["test_*.py"]
+addopts = "-q"
