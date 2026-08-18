@@ -139,11 +139,16 @@ FIELD_MEANINGS = ("open/high/low/close=价, volume=成交量, amount=成交额, 
                   "log_volume/log_amount/log_mv=对数规模")
 
 # 机制族 boost:把 LLM 生成额外拉向「隔夜跳空」等未充分挖掘机制族(权重乘数)
+# 2026-08-18 干旱期拓宽:加 boost 给全部未覆盖/低覆盖族,让探索打到新信号源
 MECHANISM_BOOST: dict[str, float] = {
     "ts_overnight_gap": 4.0,    # 跳空与隔夜定价(核心空类)
     "ts_candle": 2.0,           # K 线与日内结构(影线/intraday)
     "ts_vol_compress": 2.0,     # 波动压缩与释放(amplitude)
     "ts_vol_state": 2.0,        # 波动状态(amplitude/hl_ratio)
+    "ts_breakout": 3.0,         # 边界突破(adj_high/adj_low/hl_ratio——库内零覆盖)
+    "ts_reversal": 2.0,         # 反转与均值回归(ret/overnight/hl_ratio)
+    "cs_flow_price": 2.0,       # 截面量价关系(log_volume/log_amount/adj_close)
+    "cs_size_liquidity": 1.5,   # 截面规模流动性(log_mv/log_amount)
 }
 
 
