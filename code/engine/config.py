@@ -49,8 +49,9 @@ FSA_PARAM_VARIANT_CAP = 5           # 同骨架参数变体上限
 FAMILY_SUBTREE_CAP = 2            # 同构子树家族上限(库存中出现 ≥ 此值 → 新候选拒)
 FAMILY_SUBTREE_MIN_NODES = 4      # 参与家族计数的子树最小节点数(3 会误伤 std(zscore(FLD),N) 这类通用件)
 COVERAGE_LOCAL_RATIO_MIN = 0.6    # 覆盖率防线:任一月覆盖 < 前后各12月中位数×此值 → 拒(回测前,确定性)
-SCALE_DOMINANCE = 3.0             # 分支支配简化(2026-08-18):顶层 add/sub 分支截面 std 比 ≥ 此值
-                                  # → 复合数值上被支配,直接取支配分支(树少一层,信号不变)
+SCALE_DOMINANCE = 5.0             # 分支支配简化(2026-08-18,用户校准):顶层 add/sub 分支截面
+                                  # std 比 ≥ 此值 → 取支配分支。zscore(std≈1) vs rank_cs(std≈0.29)
+                                  # ≈3.4x 属「同一量级、保留」;roc(rank_cs(·)) 爆炸支 9~34x 才处理
 
 # ===== [推断] 审查最小复杂度(M6)=====
 # 研报:「最小复杂度门槛(如单算子单叶子、深度 ≤2 直接拒)」——「如」字表明是示例;

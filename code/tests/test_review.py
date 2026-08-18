@@ -12,7 +12,7 @@ def test_simplify_nested_cs():
 
 
 def test_simplify_keeps_hetero_cs_nesting():
-    """异型截面互包保留(2026-08-18 修正):zscore(rank_cs(·)) 是形态统一的标准写法,非冗余。"""
+    """异型截面互包保留(2026-08-18 修正):zscore(rank_cs(·)) 是生成端可刻意的形态,非冗余。"""
     t = parse("zscore(rank_cs(ma(close, 20)))")
     assert simplify(t).to_str() == "zscore(rank_cs(ma(close, 20)))"
 
@@ -22,13 +22,11 @@ def test_simplify_no_change_when_not_nested():
     assert simplify(t).to_str() == "zscore(ma(close, 20))"
 
 
-def test_shape_unification_wraps_rank_operands():
-    """形态统一:add/sub 的 rank_cs 直接子树包 zscore(均匀→正态得分,与 zscore 支可比)。"""
+def test_zscore_rank_mix_preserved():
+    """用户 2026-08-18 拍板:zscore(std≈1) 与 rank_cs(std≈0.29,≈3.4x)直接混合【保留】,
+    不做形态包装;真正失衡(≥5x)由回测前的分支支配简化处理。"""
     t = parse("add(rank_cs(log_mv), rank_cs(log_amount))")
-    assert simplify(t).to_str() == "add(zscore(rank_cs(log_mv)), zscore(rank_cs(log_amount)))"
-    # mul 不包装;非 rank_cs 子树不动
-    t2 = parse("mul(rank_cs(log_mv), zscore(ret))")
-    assert simplify(t2).to_str() == "mul(rank_cs(log_mv), zscore(ret))"
+    assert simplify(t).to_str() == "add(rank_cs(log_mv), rank_cs(log_amount))"
 
 
 # ---------------- 过滤4:最小复杂度 ----------------
@@ -102,16 +100,16 @@ def test_simplify_flattens_and_orders_add():
 
 
 def test_simplify_flattens_mul_not_sub():
-    """mul 同样规范化(不包装);sub 不交换不展平,但其 rank_cs 直接子树仍做形态统一。"""
+    """mul 同样规范化;sub 不交换不展平(子树保持原样,不做形态包装)。"""
     a = simplify(parse("mul(rank_cs(ret), mul(zscore(ret), rank_cs(log_mv)))"))
     b = simplify(parse("mul(zscore(ret), mul(rank_cs(ret), rank_cs(log_mv)))"))
-    assert a.to_str() == b.to_str() and "zscore(rank_cs" not in a.to_str()
-    s = simplify(parse("sub(rank_cs(ret), sub(zscore(ret), rank_cs(log_mv)))"))
-    assert s.to_str() == "sub(zscore(rank_cs(ret)), sub(zscore(ret), zscore(rank_cs(log_mv))))"
+    assert a.to_str() == b.to_str()
+    s = parse("sub(rank_cs(ret), sub(zscore(ret), rank_cs(log_mv)))")
+    assert simplify(s).to_str() == s.to_str()
 
 
 def test_simplify_preserves_values_for_ac_only():
-    """AC 规范化只改写法不改数值(不含 rank_cs 子树的等价排列,求值一致)。"""
+    """AC 规范化只改写法不改数值(等价排列求值一致,含 rank_cs 子树)。"""
     import numpy as np
     import pandas as pd
     from engine.expression import evaluate
@@ -119,23 +117,9 @@ def test_simplify_preserves_values_for_ac_only():
     rng = np.random.default_rng(0)
     panels = {f: pd.DataFrame(rng.normal(0, 1, (6, 3)), index=idx)
               for f in ("ret", "log_mv", "log_amount")}
-    e1 = evaluate(simplify(parse("add(zscore(ret), add(zscore(log_mv), zscore(log_amount)))")), panels)
-    e2 = evaluate(parse("add(add(zscore(log_amount), zscore(ret)), zscore(log_mv))"), panels)
+    e1 = evaluate(simplify(parse("add(rank_cs(log_mv), add(rank_cs(log_amount), zscore(ret)))")), panels)
+    e2 = evaluate(parse("add(add(rank_cs(log_mv), rank_cs(log_amount)), zscore(ret))"), panels)
     assert np.allclose(e1.to_numpy(), e2.to_numpy(), equal_nan=True)
-
-
-def test_shape_unification_changes_values_as_intended():
-    """形态统一【有意改变数值】:add(rank_cs(a), zscore(b)) ≡ zscore(rank_cs(a)) + zscore(b)。"""
-    import numpy as np
-    import pandas as pd
-    from engine.expression import evaluate
-    idx = pd.date_range("2020-01-01", periods=8)
-    rng = np.random.default_rng(2)
-    panels = {f: pd.DataFrame(rng.normal(0, 1, (8, 5)), index=idx) for f in ("ret", "log_mv")}
-    e = evaluate(simplify(parse("add(rank_cs(log_mv), zscore(ret))")), panels)
-    ref = (evaluate(parse("zscore(rank_cs(log_mv))"), panels)
-           + evaluate(parse("zscore(ret)"), panels))
-    assert np.allclose(e.to_numpy(), ref.to_numpy(), equal_nan=True)
 
 
 # ---------------- 过滤5:过度平滑/极值嵌套(2026-08-17,研报 §16)----------------
