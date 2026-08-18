@@ -48,24 +48,34 @@ def _synth_panels() -> dict[str, pd.DataFrame]:
             for f in FIELDS}
 
 
+PANELS_VERSION = "mv=close×fc(PIT) 2026-08-18"   # 口径版本:变更时缓存自动失效重建
+
+
 def _real_panels() -> dict[str, pd.DataFrame]:
     """真实模式:载 COMPUTE_START_YEAR(2015)-2025 因子数据 → 字段宽表(含 warmup buffer)。
 
-    缓存按起始年校验:若缓存面板起始年晚于 COMPUTE_START_YEAR(如旧的 2018 缓存),自动重建。
+    缓存双重校验:①起始年 ≤ COMPUTE_START_YEAR;②口径版本标记(如 mv 复权口径变更)
+    ——只看起始年感知不到口径变更,2026-08-18 审计后加入(mv口径修正方案.md §3.3)。
     """
     from engine.config import COMPUTE_START_YEAR
+    from paths import PROJECT_ROOT
+    marker = PANELS_CACHE / ".version"
     PANELS_CACHE.mkdir(parents=True, exist_ok=True)
-    if all((PANELS_CACHE / f"{f}.parquet").exists() for f in FIELDS):
+    if all((PANELS_CACHE / f"{f}.parquet").exists() for f in FIELDS) and \
+            marker.exists() and marker.read_text(encoding="utf-8") == PANELS_VERSION:
         first_min_year = pd.read_parquet(PANELS_CACHE / f"{FIELDS[0]}.parquet").index.min().year
         if first_min_year <= COMPUTE_START_YEAR:
             return {f: pd.read_parquet(PANELS_CACHE / f"{f}.parquet") for f in FIELDS}
         print(f"缓存面板起始年={first_min_year} > {COMPUTE_START_YEAR}(warmup),重建…", flush=True)
+    elif any((PANELS_CACHE / f"{f}.parquet").exists() for f in FIELDS):
+        print(f"面板口径版本变更(期望 [{PANELS_VERSION}]),重建缓存…", flush=True)
     from data_layer import load_factor_data
     print(f"构建字段宽表({COMPUTE_START_YEAR}-2025,缓存到 cache/panels/)…", flush=True)
     df = load_factor_data(COMPUTE_START_YEAR, 2025)
     panels = build_field_panels(df, FIELDS)
     for f, p in panels.items():
         p.to_parquet(PANELS_CACHE / f"{f}.parquet")
+    marker.write_text(PANELS_VERSION, encoding="utf-8")
     return panels
 
 

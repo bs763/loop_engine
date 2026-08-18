@@ -7,7 +7,9 @@
        - cum_at_t:ex_cum_factor 按 ex_date **ASOF 前向填充**(每个交易日取 ex_date≤当日 的最近一次);
          早于首次除权事件的日期无因子 → 视为 1.0(尚未发生任何除权);
        - cum_latest:该股**最新一次 ex_date** 的 ex_cum_factor(锚定基准,使最近交易日 adj≈raw);
-  3. 对齐 shares.free_circulation → mv = adj_close × free_circulation(**自由流通市值**,阶段1已确认用前复权 close);
+  3. 对齐 shares.free_circulation → mv = close × free_circulation(**时点自由流通市值,不复权**;
+     复权价只用于 adj_* 与比率字段——水平字段用前复权价会把"全历史最新除权基准"(含未来
+     公司行动)引入截面排名,2026-08-18 未来函数审计修正,见 mv口径修正方案.md);
   4. 对齐 is_st / is_suspended 标记列(**字段层不过滤**,留给 M7 回测过滤);
   5. 输出 base 表(adj OHLC + volume + amount + mv + free_circulation + 标记)。
 
@@ -130,8 +132,7 @@ def build_factor_table(start_year: int, end_year: int, *, use_cache: bool = True
           db.high  * COALESCE(exf.ex_cum_factor,1.0) / COALESCE(exlatest.cum_latest,1.0) AS adj_high,
           db.low   * COALESCE(exf.ex_cum_factor,1.0) / COALESCE(exlatest.cum_latest,1.0) AS adj_low,
           db.close * COALESCE(exf.ex_cum_factor,1.0) / COALESCE(exlatest.cum_latest,1.0) AS adj_close,
-          db.close * COALESCE(exf.ex_cum_factor,1.0) / COALESCE(exlatest.cum_latest,1.0)
-                    * sh.free_circulation             AS mv,
+          db.close * sh.free_circulation             AS mv,
           COALESCE(st.is_st, false)       AS is_st,
           COALESCE(su.is_suspended, false) AS is_suspended
         FROM db
