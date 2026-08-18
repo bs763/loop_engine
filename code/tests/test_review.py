@@ -35,7 +35,9 @@ def test_reject_shallow():
     assert apply(parse("close"))[0] is None                      # depth 0
     assert apply(parse("ma(close, 20)"))[0] is None              # depth 1
     assert apply(parse("zscore(close)"))[0] is None              # depth 1
-    assert apply(parse("zscore(ma(close, 20))"))[0] is None      # depth 2
+    # depth=2 自 2026-08-18 起合法(干旱期放宽,原拒)——depth 1 仍拒
+    t2, _r = apply(parse("zscore(ma(close, 20))"))
+    assert t2 is not None                                        # depth 2 ✓
 
 
 def test_accept_min_depth():
