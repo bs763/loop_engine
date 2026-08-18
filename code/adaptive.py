@@ -74,9 +74,9 @@ def round_signals(checkpoint: Checkpoint) -> dict:
                   for f in checkpoint.stored_factors), default=0.0)
     if len(h) < 3:
         mode = "基线"
-    elif all(s == 0 for s in h[-5:]):
+    elif all(s == 0 for s in recent_stored):   # 用提取后的值列表(旧版误迭代 dict,探索分支永不触发)
         mode = "探索"
-    elif _mean([r.get("n_pass_filters", 0) for r in h[-5:]]) > 0:
+    elif _mean(recent_stored) > 0:
         mode = "深挖"
     else:
         mode = "基线"
