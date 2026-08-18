@@ -63,6 +63,7 @@ def main() -> None:
         fname = f"{i:04d}_{_slug(expr)}_{h}.parquet"
         df.to_parquet(out / fname)
         m = f.get("metrics", {})
+        om = f.get("oos_metrics") or {}          # OOS(2025)存档——只报告,不参与筛选
         rows.append({
             "idx": i, "file": fname, "expr": expr, "hash": f.get("hash", ""),
             "direction": m.get("direction"), "ic_mean": m.get("ic_mean"),
@@ -70,9 +71,23 @@ def main() -> None:
             "ls_sharpe": m.get("ls_sharpe"), "calmar": m.get("calmar"),
             "long_excess_annual": m.get("long_excess_annual"),
             "monotonicity": m.get("monotonicity"),
+            "oos_ic_mean": om.get("ic_mean"), "oos_icir": om.get("icir"),
+            "oos_ls_sharpe": om.get("ls_sharpe"),
+            "oos_long_excess_annual": om.get("long_excess_annual"),
+            "oos_monotonicity": om.get("monotonicity"),
         })
 
     pd.DataFrame(rows).to_csv(out / "manifest.csv", index=False, encoding="utf-8-sig")
+    # OOS 报告(样本外 2025):按 OOS IC 降序 + IC 保有率,单独成档
+    if any(r.get("oos_ic_mean") is not None for r in rows):
+        oos = pd.DataFrame([{k: r[k] for k in ("expr", "hash", "ic_mean", "oos_ic_mean",
+                                               "ls_sharpe", "oos_ls_sharpe",
+                                               "oos_long_excess_annual", "oos_monotonicity")} |
+                            {"ic_retention": (r["oos_ic_mean"] / r["ic_mean"]) if r.get("ic_mean") else None}
+                            for r in rows if r.get("oos_ic_mean") is not None])
+        oos = oos.sort_values("oos_ic_mean", ascending=False)
+        oos.to_csv(out / "oos_report.csv", index=False, encoding="utf-8-sig")
+        print(f"OOS 报告 → {out / 'oos_report.csv'}({len(oos)} 个,含 IC 保有率)")
     print(f"导出 {len(rows)} 个因子 → {out}/")
     print(f"清单 → {out / 'manifest.csv'}")
     # 清理被替换/移除的旧因子残留 parquet(保优淘劣换 hash 后,旧文件不再对应任何入库因子)

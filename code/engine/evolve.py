@@ -90,6 +90,7 @@ class Evolver:
         self.rng = rng if rng is not None else np.random.default_rng()
         self.llm_provider = llm_provider  # 阶段 4 接入;None → stub
         self._field_usage: dict[str, int] = {}   # 字段→已入库因子中使用次数(引导转向未充分挖掘字段)
+        self.last_gen_meta: list[dict] = []      # 最近一次 generate 的候选来源(与输出对齐)
         # 字段 boost:把生成额外拉向「隔夜跳空」等未充分挖掘来源(权重乘数,默认跳空优先)
         self._boost_fields: dict[str, float] = {"overnight": 4.0, "intraday": 2.0, "amplitude": 2.0}
 
@@ -199,6 +200,8 @@ class Evolver:
         (2026-08-18 轮 370:健康行 生成 ok2 暴露)。
         """
         out: list[Node] = []
+        metas: list[dict] = []      # 与 out 对齐的来源信息(供编排层做族归属/拒因回流)
+        self.last_gen_meta = metas
         has_parents = len(parents) > 0
         t0 = time.monotonic()
         for _ in range(n * 3):                  # 多试,跳过非法/超深
@@ -207,18 +210,26 @@ class Evolver:
             op = self._pick_op() if has_parents else "random"
             if op == "llm" and time.monotonic() - t0 > llm_time_budget:
                 op = "random"                   # LLM 超预算 → 降级随机
+            meta: dict = {"op": op}
             if op == "random":
                 cand = random_tree(self.fields, self.cfg.max_depth, self.rng,
                                    field_weights=self._field_weights())
             elif op == "mutate":
-                cand = self.mutate(self._pick_parent(parents))
+                p = self._pick_parent(parents)
+                meta["parent"] = p.expr_hash()
+                cand = self.mutate(p)
             elif op == "crossover":
                 a, b = self._pick_two(parents)
+                meta["parents"] = [a.expr_hash(), b.expr_hash()]
                 cand = self.crossover(a, b)
             elif op == "perturb":
-                cand = self.perturb_op(self._pick_parent(parents))
+                p = self._pick_parent(parents)
+                meta["parent"] = p.expr_hash()
+                cand = self.perturb_op(p)
             else:  # llm
-                cand = self.llm_op(self._pick_parent(parents))
+                p = self._pick_parent(parents)
+                meta["parent"] = p.expr_hash()
+                cand = self.llm_op(p)
             try:
                 cand.validate()
             except Exception:
@@ -226,9 +237,11 @@ class Evolver:
             if cand.depth() > self.cfg.max_depth:
                 continue                        # LLM/交叉偶发超深,跳过
             out.append(cand)
+            metas.append(meta)
         while len(out) < n:                     # 仍不足(大量非法)→ random_tree 补足
             c = random_tree(self.fields, self.cfg.max_depth, self.rng,
                             field_weights=self._field_weights())
             c.validate()
             out.append(c)
+            metas.append({"op": "random_fill"})
         return out

@@ -73,6 +73,10 @@ def _register_family(expr_hash: str, mech_id: str, cap: int = 4000) -> None:
     if len(_expr_family) > cap:
         _expr_family.pop(next(iter(_expr_family)))
 
+
+# 公开别名:编排层为「演化候选」登记族归属(继承父本的族)时使用
+register_family = _register_family
+
 # ============================================================================
 # 12 机制族(时序 8 + 截面 4)——以图表 7 为准(见模块 docstring)
 # ============================================================================

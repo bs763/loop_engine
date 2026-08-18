@@ -26,7 +26,8 @@ from engine.evolve import Evolver
 from engine.expression import evaluate, parse
 from engine.fsa import FSA, skeleton
 from filters import FilterResult, apply_filters
-from llm.mechanisms import add_family_note, family_of, is_metric_reason, review_expression
+from llm.mechanisms import (add_family_note, family_of, is_metric_reason,
+                            register_family, review_expression)
 
 # 过滤项 → 短标签(供每轮拒绝分类汇总)
 _FILTER_LABELS = {
@@ -118,6 +119,16 @@ def run_round(*, checkpoint: Checkpoint, evolver: Evolver, evaluator: Evaluator,
             field_usage[fld] += 1
     evolver.set_field_usage(dict(field_usage))
     candidates = evolver.generate(parents, n_candidates)
+    # 族归属(2026-08-18 补链):LLM 候选生成时已登记;演化候选(mutation/crossover/perturb)
+    # 继承父本的族(库存记录的 family 字段)——终审拒因回流由此对全部候选生效。
+    parent_fam = {f.get("hash"): f.get("family") for f in checkpoint.stored_factors}
+    for cand, meta in zip(candidates, getattr(evolver, "last_gen_meta", [])):
+        if family_of(cand.expr_hash()) is not None:
+            continue                              # LLM 生成已登记
+        ph = meta.get("parent") or (meta.get("parents") or [None])[0]
+        fam = parent_fam.get(ph) or family_of(ph or "")
+        if fam:
+            register_family(cand.expr_hash(), fam)
 
     # ---- 2) 审查四过滤 + 哈希去重(轮内去重用内存集;审查未过→标已测去重,回测异常→不标)----
     reviewed: list = []          # [(node, hash)]
@@ -201,6 +212,7 @@ def run_round(*, checkpoint: Checkpoint, evolver: Evolver, evaluator: Evaluator,
                 "ic_series": (m.ic_series if capture_ic_series else None),
                 "metrics": _metrics_summary(m),
                 "oos_metrics": oos_metrics,
+                "family": family_of(h),           # 生成机制族(供演化子代继承/拒因回流)
             }
             if fr.replace_hashes:
                 # 高相关但综合质量全面更优 → 移除所有相关旧因子,再入库新因子

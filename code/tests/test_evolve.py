@@ -108,6 +108,31 @@ def test_llm_stub_without_provider():
     assert t.fields().issubset(set(FIELDS))
 
 
+def test_generate_meta_aligned_with_output():
+    """last_gen_meta 与输出候选严格对齐(含跳过的非法候选与补足段),供族归属使用。"""
+    e = _new(11)
+    out = e.generate(PARENTS, 40)
+    assert len(out) == 40 and len(e.last_gen_meta) == 40
+    ops = {m["op"] for m in e.last_gen_meta}
+    assert ops <= {"mutate", "crossover", "perturb", "random", "llm", "random_fill"}
+    # 变异/扰动带父本 hash
+    for m in e.last_gen_meta:
+        if m["op"] in ("mutate", "perturb"):
+            assert m.get("parent") in {p.expr_hash() for p in PARENTS}
+
+
+def test_family_inheritance_registration():
+    """编排层的族继承:父本有 family → 演化子代可登记同族(拒因回流前提)。"""
+    from llm import mechanisms as M
+    parent_hash = PARENTS[0].expr_hash()
+    M.register_family(parent_hash, "ts_trend_momentum")
+    e = _new(12)
+    out = e.generate([PARENTS[0]], 10)
+    inherited = sum(1 for c, m in zip(out, e.last_gen_meta)
+                    if m["op"] in ("mutate", "perturb") and m.get("parent") == parent_hash)
+    assert inherited > 0
+
+
 def test_llm_provider_hook_called():
     """传 provider 时,llm_op 走 provider。"""
     called = {"n": 0}
