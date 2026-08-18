@@ -16,12 +16,13 @@ from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 
+import numpy as np
 import pandas as pd
 
 from backtest.interface import Evaluator
 from engine import review
 from engine.checkpoint import Checkpoint
-from engine.config import BACKTEST_START, COVERAGE_LOCAL_RATIO_MIN
+from engine.config import BACKTEST_START, COVERAGE_LOCAL_RATIO_MIN, SCALE_DOMINANCE
 from engine.evolve import Evolver
 from engine.expression import evaluate, parse
 from engine.fsa import FSA, skeleton
@@ -58,6 +59,25 @@ class RoundStats:
                 f"→ 审查过 {self.n_pass_review} → 回测 {self.n_backtested} "
                 f"→ 入库 {self.n_pass_filters}(累计 {self.stored_total}) "
                 f"[{self.elapsed_sec/60:.1f}min]")
+
+
+def _panel_std(panel: pd.DataFrame) -> float:
+    """面板截面 std 估计(每 10 行抽样,支撑 ≥3x 阈值判断足够,省 ~20x 计算)。"""
+    return float(np.nanstd(panel.values[::10]))
+
+
+def _simplify_or_combine(node, p1: pd.DataFrame, p2: pd.DataFrame,
+                         ratio: float = SCALE_DOMINANCE):
+    """顶层 add/sub 的分支支配处理(用户 2026-08-18 拍定):
+
+    某分支截面 std ≥ ratio 倍于另一分支 → 复合在数值上被支配支独占,
+    直接取支配支(树少一层、信号不变,失衡复合不再拒绝);否则按算子合成面板
+    (与 evaluate 等价,免二次求值)。返回 (节点, 面板)。
+    """
+    s1, s2 = _panel_std(p1), _panel_std(p2)
+    if min(s1, s2) > 0 and max(s1, s2) >= min(s1, s2) * ratio:
+        return (node.children[0], p1) if s1 > s2 else (node.children[1], p2)
+    return node, (p1 + p2 if node.op == "add" else p1 - p2)
 
 
 def build_field_panels(df: pd.DataFrame, fields: list[str]) -> dict[str, pd.DataFrame]:
@@ -157,7 +177,19 @@ def run_round(*, checkpoint: Checkpoint, evolver: Evolver, evaluator: Evaluator,
     def _eval(nh):
         node, h = nh
         try:
-            panel = evaluate(node, field_panels)
+            if not node.is_leaf() and node.op in ("add", "sub") and len(node.children) == 2:
+                p1 = evaluate(node.children[0], field_panels)
+                p2 = evaluate(node.children[1], field_panels)
+                node2, panel = _simplify_or_combine(node, p1, p2)
+                if node2 is not node:            # 分支支配 → 取支配支(可能变浅/与已测重复)
+                    h2 = node2.expr_hash()
+                    if node2.depth() < 3:
+                        return (node2, h, "ValueError: 分支支配简化后深度不足")
+                    if checkpoint.is_tested(h2):
+                        return (node2, h, "ValueError: 分支支配简化后与已测重复")
+                    node, h = node2, h2
+            else:
+                panel = evaluate(node, field_panels)
             cov = _coverage_reason(panel)
             if cov:   # 覆盖率塌陷:确定性结构缺陷,回测前拦下(ValueError 前缀 → 永久去重)
                 return (node, h, cov)
@@ -261,8 +293,11 @@ def run_round(*, checkpoint: Checkpoint, evolver: Evolver, evaluator: Evaluator,
             else:
                 reject_summary["审查:其他"] += 1
         elif r["disp"] == "backtest_error":
-            if "覆盖率" in (r["reasons"] or [""])[0]:
+            reason0 = (r["reasons"] or [""])[0]
+            if "覆盖率" in reason0:
                 reject_summary["审查:覆盖率"] += 1
+            elif "简化后" in reason0:
+                reject_summary["审查:结构简化"] += 1
             else:
                 reject_summary["回测异常"] += 1
         elif r["disp"] == "filter_reject":

@@ -97,6 +97,17 @@ _SMOOTH_OPS = {"ma", "std"}    # 平滑统计量
 _EXTREME_OPS = {"max", "min"}  # 滚动极值
 
 
+def _roc_on_cs(node: Node) -> str | None:
+    """roc 语义闸(2026-08-18):roc(变化率,做除法)的直接子节点为截面算子(rank_cs/zscore)
+    → 拒。rank 有 [0,1] 下界可无限趋零、zscore 会过零——做分母必产生爆炸值
+    (实测 roc(rank_cs(·)) 分支截面 std 达 9.6,同库正常分支 0.3)。delta 差分有界,不受限。"""
+    for n in node.walk():
+        if n.op == "roc" and not n.children[0].is_leaf() \
+                and n.children[0].op in ("rank_cs", "zscore"):
+            return f"roc_on_cs({n.children[0].op})"
+    return None
+
+
 def _ts_nesting(node: Node) -> tuple[str, str] | None:
     """时序算子直接嵌套同类(过滤5):平滑嵌平滑 / 极值嵌极值。
 
@@ -133,5 +144,8 @@ def apply(tree: Node, min_depth: int = MIN_DEPTH) -> tuple[Node | None, str]:
     nest = _ts_nesting(t)
     if nest is not None:
         return None, f"review:{nest[0]}({nest[1]})"
+    bad_roc = _roc_on_cs(t)
+    if bad_roc:
+        return None, f"review:{bad_roc}"
 
     return t, ""

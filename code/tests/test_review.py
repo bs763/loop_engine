@@ -143,3 +143,21 @@ def test_single_smoothing_and_gap_nesting_pass():
     # 极值套平滑也不算「极值嵌极值」(如 max(ma(·),40) 是 winsorize 型组合)
     t2, reason2 = apply(parse("zscore(sub(max(ma(close, 5), 40), ma(close, 20)))"))
     assert t2 is not None, reason2
+
+
+# ---------------- roc 语义闸(2026-08-18)----------------
+
+def test_reject_roc_on_cs():
+    """roc 直接作用于截面算子(rank_cs 有 [0,1] 下界、zscore 过零)→ 分母不良定义,拒。"""
+    t, reason = apply(parse("add(rank_cs(log_mv), roc(rank_cs(log_mv), 60))"))
+    assert t is None and "roc_on_cs" in reason
+    t2, reason2 = apply(parse("zscore(roc(zscore(adj_close), 20))"))
+    assert t2 is None and "roc_on_cs" in reason2
+
+
+def test_roc_on_levels_and_delta_on_rank_pass():
+    """roc 作用于价格水平(输出 dimless,与同量纲项组合)→ 合法;delta 作用于 rank → 合法。"""
+    t, reason = apply(parse("add(roc(ma(close, 5), 10), ret)"))
+    assert t is not None, reason
+    t2, reason2 = apply(parse("add(rank_cs(log_mv), delta(rank_cs(log_mv), 5))"))
+    assert t2 is not None, reason2

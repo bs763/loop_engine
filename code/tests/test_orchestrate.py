@@ -75,6 +75,21 @@ def test_coverage_ignores_warmup_months():
     assert _coverage_reason(df) is None                          # 不得误报
 
 
+def test_simplify_or_combine():
+    """分支支配简化(用户 2026-08-18):std 比 ≥3x 取支配支;平衡则合成面板(等价于 evaluate)。"""
+    from engine.expression import parse
+    from loop_orchestrate import _simplify_or_combine
+    idx = pd.date_range("2020-01-01", periods=60)
+    rng = np.random.default_rng(3)
+    small = pd.DataFrame(rng.uniform(0, 1, (60, 4)), index=idx)      # std≈0.29
+    big = pd.DataFrame(rng.normal(0, 5, (60, 4)), index=idx)         # std≈5
+    node = parse("add(a, b)")                                        # 占位算子名无关紧要
+    n2, panel = _simplify_or_combine(node, big, small)
+    assert n2 is node.children[0] and panel is big                  # 支配支胜出
+    n3, panel3 = _simplify_or_combine(node, small, small.copy())
+    assert n3 is node and np.allclose(panel3.values, small.values * 2, equal_nan=True)
+
+
 def test_build_field_panels():
     df = pd.DataFrame({
         "order_book_id": ["A", "A", "B", "B"],
