@@ -155,6 +155,8 @@ def main() -> None:
     print(f"STATUS: iter={stats.iteration} tested={len(cp.tested_hashes)} "
           f"stored={stats.stored_total} new={stats.n_pass_filters} "
           f"elapsed={stats.elapsed_sec/60:.1f}min workers={args.workers}")
+    from lib_status import oos_health
+    print(oos_health(cp.stored_factors))   # OOS 崩塌跳闸(用户 2026-08-18:ALERT → 停 loop 汇报)
     print(f"SIGNALS: {round_signals(cp)}")
 
 

@@ -14,6 +14,26 @@ from paths import OUTPUT_DIR
 CKPT = OUTPUT_DIR / "checkpoint.json"
 
 
+def oos_health(factors: list) -> str:
+    """OOS 系统性崩塌体检(用户 2026-08-18 拍板:崩塌 → 立即停 loop 向用户汇报)。
+
+    崩塌定义(带 OOS 存档的因子 ≥5 个时评估):
+      中位 OOS IC ≤ 0,或 OOS IC 为负的因子占比 ≥ 50%。
+    正常时返回体检行;崩塌时返回 OOS ALERT(编排器见 ALERT 必须停止续链)。
+    """
+    ics = [f["oos_metrics"].get("ic_mean") for f in factors if f.get("oos_metrics")]
+    ics = [float(x) for x in ics if x is not None]
+    if len(ics) < 5:
+        return f"OOS体检: 样本不足({len(ics)}/5)"
+    ics_sorted = sorted(ics)
+    med = ics_sorted[len(ics) // 2] if len(ics) % 2 else (ics_sorted[len(ics) // 2 - 1] + ics_sorted[len(ics) // 2]) / 2
+    neg = sum(1 for x in ics if x < 0) / len(ics)
+    if med <= 0 or neg >= 0.5:
+        return (f"OOS ALERT: 系统性崩塌(中位OOS IC={med:+.4f}, 负占比={neg:.0%})"
+                f"→ 立即停止 loop 并向用户汇报!")
+    return f"OOS体检: n={len(ics)} 中位OOS IC={med:+.4f} 负占比={neg:.0%}(正常)"
+
+
 def _corr_report(factors: list) -> None:
     """两两 IC 相关体检(2026-08-17 加,#9 是入库门槛而非持有门槛,入库后相关会漂移——
     0007 与第一名 0.78 即被坏数据掩盖的存量违规)。≥0.7 打印明细供处置。"""
@@ -63,6 +83,7 @@ def main() -> None:
                       f"单调 {im.get('monotonicity', 0):.2f}→{om.get('monotonicity', float('nan')):.2f}"
                       f" | {f.get('expr', '')[:46]}")
         _corr_report(factors)
+        print(oos_health(factors))
 
 
 if __name__ == "__main__":

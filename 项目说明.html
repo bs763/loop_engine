@@ -166,11 +166,11 @@
 </table>
 <h3>4.4 如何使用</h3>
 <p><b>日常全自动</b>:每轮 <code>run_round_cli.py</code> 默认即 IS 准入 + OOS 存档,无需任何参数。手动工具:<code>health_check.py</code> 用库内 IS 指标复核阈值;<code>lib_status.py</code> 看衰减表;<code>export_factors.py</code> 导出全窗口(2018-2025)因子值供策略使用——因子<b>值</b>的导出与样本切分无关(切分约束的是<b>评测</b>)。</p>
-<h3>4.5 边界与人工决策点</h3>
+<h3>4.5 边界与决策(2026-08-18 用户拍板)</h3>
 <div class="grid g3">
-  <div class="mini"><b>OOS 系统性崩塌时</b><br><span style="color:var(--mut)">= 挖掘流程过拟合警报 → <b>人工</b>决定收紧 IS 门槛/改机制引导;绝不程序化地拿 OOS 筛(那只是把过拟合推迟一段)</span></div>
-  <div class="mini"><b>tested_hashes 历史包袱</b><br><span style="color:var(--mut)">1.5 万个已测 hash 多为全窗口时代拒绝,IS 口径下部分可翻身但被去重挡住——待拍板是否释放重测</span></div>
-  <div class="mini"><b>OOS 仅一年</b><br><span style="color:var(--mut)">2025 单年风格样本;数据源有 2026 YTD 后可滚动延长 OOS(挂起的动作4)</span></div>
+  <div class="mini"><b>OOS 系统性崩塌 → 跳闸</b><br><span style="color:var(--mut)">每轮 STATUS 后自动输出「OOS体检」:中位 OOS IC≤0 或负占比≥50% 即 <b>OOS ALERT → 立即停止 loop 向用户汇报</b>,等待人工决策(绝不程序化用 OOS 筛)</span></div>
+  <div class="mini"><b>tested_hashes 不释放</b><br><span style="color:var(--mut)">历史 1.5 万已测 hash 维持去重,不重测(早期组合多为低效结构,翻身价值有限)</span></div>
+  <div class="mini"><b>OOS 一年足够</b><br><span style="color:var(--mut)">2025 单年 holdout 维持现状;不滚动延长(数据源有 2026 后可复议)</span></div>
 </div>
 </div>
 
