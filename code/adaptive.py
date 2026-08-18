@@ -51,6 +51,15 @@ def dynamic_budget(history: list[dict], base: EvolveConfig | None = None,
     return cfg, reason
 
 
+def budget_mode(reason: str) -> str:
+    """把 dynamic_budget 的理由映射为模式标签(探索/深挖/基线),供汇报与 SIGNALS。"""
+    if reason.startswith("stuck"):
+        return "探索"
+    if reason.startswith("yielding"):
+        return "深挖"
+    return "基线"
+
+
 def round_signals(checkpoint: Checkpoint) -> dict:
     """浓缩检查点为几条信号,供编排器每轮判断/诊断。"""
     h = checkpoint.history
@@ -63,6 +72,14 @@ def round_signals(checkpoint: Checkpoint) -> dict:
             break
     top_ic = max((abs(f.get("metrics", {}).get("ic_mean", 0))
                   for f in checkpoint.stored_factors), default=0.0)
+    if len(h) < 3:
+        mode = "基线"
+    elif all(s == 0 for s in h[-5:]):
+        mode = "探索"
+    elif _mean([r.get("n_pass_filters", 0) for r in h[-5:]]) > 0:
+        mode = "深挖"
+    else:
+        mode = "基线"
     return {
         "iteration": checkpoint.iteration,
         "stored_total": len(checkpoint.stored_factors),
@@ -70,4 +87,5 @@ def round_signals(checkpoint: Checkpoint) -> dict:
         "recent_stored": recent_stored,
         "stuck_rounds": stuck,
         "top_abs_ic": round(top_ic, 4),
+        "mode": mode,
     }

@@ -19,7 +19,7 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
-from adaptive import dynamic_budget, round_signals
+from adaptive import budget_mode, dynamic_budget, round_signals
 from backtest.alphalab_adapter import AlphalabEvaluator
 from backtest.mock import MockEvaluator
 from engine.checkpoint import Checkpoint
@@ -96,7 +96,7 @@ def main() -> None:
 
     cp = Checkpoint.load(args.checkpoint)            # 断点续跑
     cfg, breason = dynamic_budget(cp.history)        # 自适应预算(M3)
-    print(f"BUDGET: {breason} | mutate/crossover/perturb/random/llm = "
+    print(f"BUDGET: 【{budget_mode(breason)}】{breason} | mutate/crossover/perturb/random/llm = "
           f"{cfg.mutate}/{cfg.crossover}/{cfg.perturb}/{cfg.random}/{cfg.llm}")
 
     gen_provider, rev_provider, oos_evaluator = None, None, None
