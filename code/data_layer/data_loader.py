@@ -3,10 +3,12 @@
 
 职责(严格按 docs/项目执行指南.md M2 口径,阶段 1 已确认):
   1. 从 OSS 拉取(或读本地缓存)原始 daily_bar / ex_factor / shares / is_st / is_suspended;
-  2. 前复权:adj_price = raw × cum_at_t / cum_latest
+  2. 复权:adj_price = raw × cum_at_t(**纯时点累计复权,无未来锚**)
        - cum_at_t:ex_cum_factor 按 ex_date **ASOF 前向填充**(每个交易日取 ex_date≤当日 的最近一次);
          早于首次除权事件的日期无因子 → 视为 1.0(尚未发生任何除权);
-       - cum_latest:该股**最新一次 ex_date** 的 ex_cum_factor(锚定基准,使最近交易日 adj≈raw);
+       - 2026-08-18 未来函数审计:旧口径 `raw × f_t / cum_latest` 的 cum_latest 取自数据末尾
+         (含未来公司行动),比率类用法虽精确相消,但 delta/价差/水平类运算把逐股 1/L 的
+         未来信息带入截面 → 移除 /cum_latest(10 个派生字段数学上逐值不变,见 derived_fields.py);
   3. 对齐 shares.free_circulation → mv = close × free_circulation(**时点自由流通市值,不复权**;
      复权价只用于 adj_* 与比率字段——水平字段用前复权价会把"全历史最新除权基准"(含未来
      公司行动)引入截面排名,2026-08-18 未来函数审计修正,见 mv口径修正方案.md);
@@ -81,7 +83,7 @@ def build_factor_table(start_year: int, end_year: int, *, use_cache: bool = True
     """加载 + 前复权 + 对齐 → base 表(尚未算派生字段)。
 
     返回列:order_book_id, date, open/high/low/close(原始), prev_close, volume, amount,
-            free_circulation, cum_at_t, cum_latest, adj_open/high/low/close, mv, is_st, is_suspended。
+            free_circulation, cum_at_t, adj_open/high/low/close, mv, is_st, is_suspended。
     """
     if end_year < start_year:
         raise ValueError(f"end_year({end_year}) < start_year({start_year})")
@@ -105,10 +107,6 @@ def build_factor_table(start_year: int, end_year: int, *, use_cache: bool = True
           SELECT order_book_id, ex_date, ex_cum_factor
           FROM read_parquet('{exf_file.as_posix()}')
         ),
-        exlatest AS (
-          SELECT order_book_id, ex_cum_factor AS cum_latest
-          FROM exf QUALIFY ROW_NUMBER() OVER (PARTITION BY order_book_id ORDER BY ex_date DESC) = 1
-        ),
         sh AS (
           SELECT order_book_id, date, free_circulation
           FROM read_parquet({_sql_list(sh_files)})
@@ -126,19 +124,17 @@ def build_factor_table(start_year: int, end_year: int, *, use_cache: bool = True
           db.open, db.high, db.low, db.close, db.prev_close,
           db.volume, db.total_turnover AS amount,
           sh.free_circulation,
-          COALESCE(exf.ex_cum_factor, 1.0)            AS cum_at_t,
-          COALESCE(exlatest.cum_latest, 1.0)          AS cum_latest,
-          db.open  * COALESCE(exf.ex_cum_factor,1.0) / COALESCE(exlatest.cum_latest,1.0) AS adj_open,
-          db.high  * COALESCE(exf.ex_cum_factor,1.0) / COALESCE(exlatest.cum_latest,1.0) AS adj_high,
-          db.low   * COALESCE(exf.ex_cum_factor,1.0) / COALESCE(exlatest.cum_latest,1.0) AS adj_low,
-          db.close * COALESCE(exf.ex_cum_factor,1.0) / COALESCE(exlatest.cum_latest,1.0) AS adj_close,
+          COALESCE(exf.ex_cum_factor, 1.0) AS cum_at_t,
+          db.open  * COALESCE(exf.ex_cum_factor, 1.0) AS adj_open,
+          db.high  * COALESCE(exf.ex_cum_factor, 1.0) AS adj_high,
+          db.low   * COALESCE(exf.ex_cum_factor, 1.0) AS adj_low,
+          db.close * COALESCE(exf.ex_cum_factor, 1.0) AS adj_close,
           db.close * sh.free_circulation             AS mv,
           COALESCE(st.is_st, false)       AS is_st,
           COALESCE(su.is_suspended, false) AS is_suspended
         FROM db
         ASOF LEFT JOIN exf
           ON db.order_book_id = exf.order_book_id AND db.date >= exf.ex_date
-        LEFT JOIN exlatest ON db.order_book_id = exlatest.order_book_id
         LEFT JOIN sh ON db.order_book_id = sh.order_book_id AND db.date = sh.date
         LEFT JOIN st ON db.order_book_id = st.order_book_id AND db.date = st.date
         LEFT JOIN su ON db.order_book_id = su.order_book_id AND db.date = su.date
