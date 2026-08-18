@@ -290,6 +290,8 @@ def run_round(*, checkpoint: Checkpoint, evolver: Evolver, evaluator: Evaluator,
                 reject_summary["审查:过度平滑"] += 1
             elif "extreme_nesting" in reason:
                 reject_summary["审查:极值嵌套"] += 1
+            elif "roc_on_cs" in reason:
+                reject_summary["审查:roc语义"] += 1
             else:
                 reject_summary["审查:其他"] += 1
         elif r["disp"] == "backtest_error":
