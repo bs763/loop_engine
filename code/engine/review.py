@@ -42,26 +42,41 @@ def _flatten_ac(node: Node, op: str) -> list[Node]:
     return args
 
 
+def _cs_normal(child: Node) -> Node:
+    """形态统一(用户 2026-08-18):add/sub 的直接子树根为 rank_cs(均匀 [0,1],std≈0.29)
+    → 包一层 zscore 转正态得分,与 zscore 支(标准正态,std=1)形态/尺度可比。"""
+    if not child.is_leaf() and child.op == "rank_cs":
+        return Node.cs("zscore", child)
+    return child
+
+
 def simplify(tree: Node) -> Node:
-    """简化:①折叠直接嵌套的截面算子;②add/mul 交换结合规范化(展平+字典序+左倾重建)——
-    同一数学结构只保留一种写法(add(A,add(B,C)) 与 add(B,add(A,C)) 此前是不同 hash,
-    各自浪费一次回测)。数值语义完全不变。返回新树。"""
+    """简化与规范化:①同型截面嵌套折叠(zscore(zscore) 等冗余;zscore(rank_cs) **保留**——
+    均匀 vs 正态得分形态不同,是形态统一的标准写法,2026-08-18 修正旧口径);
+    ②add/mul 交换结合规范化(展平+字典序+左倾重建,等价结构同一 hash);
+    ③add/sub 直接子树的 rank_cs → zscore 包装(形态统一,见 _cs_normal)。
+    返回新树。"""
     if tree.is_leaf():
         return tree
     children = [simplify(c) for c in tree.children]
     node = Node(tree.op, tree.field, tree.window, children)
-    # 截面算子的唯一子也是截面 → 去掉外层截面,保留内层
-    if _is_cs(node) and _is_cs(node.children[0]):
+    # 截面算子的唯一子是【同型】截面 → 去掉外层(冗余);异型(rank_cs/zscore 互包)保留
+    if _is_cs(node) and _is_cs(node.children[0]) and node.op == node.children[0].op:
         return node.children[0]
-    # add/mul 规范化:展平嵌套同类 → 字典序排序 → 左倾重建
+    # add/mul 规范化:展平嵌套同类 → (add 先做形态统一包装)→ 字典序排序 → 左倾重建
     if node.op in ("add", "mul") and len(node.children) == 2:
         args = _flatten_ac(node, node.op)
         if len(args) > 2:
+            if node.op in ("add", "sub"):
+                args = [_cs_normal(a) for a in args]
             args.sort(key=lambda s: s.to_str())
             t = args[0]
             for a in args[1:]:
                 t = Node(node.op, None, None, [t, a])
-            return t
+            node = t
+    # 形态统一:add/sub 的 rank_cs 直接子树 → zscore 包装
+    if node.op in ("add", "sub"):
+        node = Node(node.op, None, None, [_cs_normal(c) for c in node.children])
     return node
 
 
