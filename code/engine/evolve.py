@@ -188,12 +188,15 @@ class Evolver:
                            field_weights=self._field_weights())
 
     # ---- 批量生成 ----
-    def generate(self, parents: list[Node], n: int, llm_time_budget: float = 120.0) -> list[Node]:
+    def generate(self, parents: list[Node], n: int, llm_time_budget: float = 360.0) -> list[Node]:
         """生成 n 个候选。parents 为空(冷启动)→ 全随机。
 
         非法结构(arity/窗口)或超深度(LLM 偶发产出 depth>max_depth)的候选【跳过】,
         不足 n 用 random_tree 补足 —— 单个坏候选不崩轮。
-        LLM 分支有总时间预算:超预算后降级为随机,避免 DeepSeek 抖动把生成拖到几十分钟。
+        LLM 分支有总时间预算:超预算后降级为随机,避免 API 抖动把生成拖到几十分钟。
+        预算 360s = glm-5.3 思考延迟(单次 3-21s × ~15 席)+ 一次挂死(120s 超时)的余量;
+        旧值 120s 为 DeepSeek 时代校准,曾致 LLM 分支被单次 hang 耗光预算后静默全降级
+        (2026-08-18 轮 370:健康行 生成 ok2 暴露)。
         """
         out: list[Node] = []
         has_parents = len(parents) > 0
