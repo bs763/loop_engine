@@ -26,7 +26,7 @@ from engine.evolve import Evolver
 from engine.expression import evaluate, parse
 from engine.fsa import FSA, skeleton
 from filters import FilterResult, apply_filters
-from llm.mechanisms import review_expression
+from llm.mechanisms import add_family_note, family_of, is_metric_reason, review_expression
 
 # 过滤项 → 短标签(供每轮拒绝分类汇总)
 _FILTER_LABELS = {
@@ -176,11 +176,15 @@ def run_round(*, checkpoint: Checkpoint, evolver: Evolver, evaluator: Evaluator,
             continue
         checkpoint.add_tested(h)   # 回测成功(指标可解析)才落盘去重
         fr = apply_filters(m, fsa=fsa, node=node, stored_factors=checkpoint.stored_factors, expr_hash=h)
-        # LLM 终审(用户 2026-08-17 接线):仅对过全部过滤、即将入库的候选(每轮 1-2 个)
-        # 把最后一道经济学关;LLM 不可用→放行(review_expression 内建);拒→按 #16 记 filter_reject
+        # LLM 终审(用户 2026-08-17 接线,2026-08-18 升级):仅对过全部过滤、即将入库的候选把关;
+        # 携带 IS 指标供诊断(选择端合法);拒因分两类——指标类只进台账,**结构/经济类回流该机制族
+        # 生成 prompt 的「已知缺陷」栏**(防 Goodhart:指标数值永不回流生成端)
         if fr.passed and llm_reviewer is not None:
-            accept, why = review_expression(llm_reviewer, node)
+            accept, why = review_expression(llm_reviewer, node, metrics=m)
             if not accept:
+                fam = family_of(h)
+                if fam and not is_metric_reason(why):
+                    add_family_note(fam, why[:120])
                 fr = FilterResult(passed=False, reasons=[f"16.LLM终审拒:{why[:80]}"])
         if fr.passed:
             # OOS 样本外指标(用户 2026-08-17):入库时算一次存档,**只报告、绝不参与筛选**

@@ -10,6 +10,42 @@ from llm.provider import MockProvider
 ALLOWED = ["close", "high", "low", "volume", "overnight", "amplitude"]
 
 
+# ---------------- 终审带指标 + 族级缺陷记忆(2026-08-18)----------------
+
+def test_review_prompt_with_metrics():
+    """终审携带 IS 指标:逐年数字进入 prompt,且声明「不得仅因指标高低拒收」。"""
+    p = M.build_review_prompt(parse("zscore(ma(close, 20))"),
+                              metrics={"ic_mean": 0.04, "icir": 0.6, "ls_sharpe": 2.0,
+                                       "calmar": 1.5, "long_excess_annual": 0.02,
+                                       "monotonicity": 0.9,
+                                       "annual_ls_return": {2018: 0.1, 2019: -0.05}})
+    assert "+0.0400" in p and "2018:+10.0%" in p and "2019:-5.0%" in p
+    assert "不得仅因指标高低" in p
+
+
+def test_family_note_flowback_persists_and_injects(tmp_path):
+    """族级缺陷记忆:结构类拒因落盘并注入生成 prompt;指标类拒因被识别不回流。"""
+    M._FAMILY_NOTES_PATH = tmp_path / "family_notes.json"
+    M._family_notes = None
+    assert M.is_metric_reason("IC 集中于单一年份,夏普虚高") is True
+    assert M.is_metric_reason("多头超额年化仅0.1%") is True
+    assert M.is_metric_reason("div 分母 min(amplitude,120) 横盘日为零") is False
+    M.add_family_note("ts_candle", "div 分母 min(amplitude,120) 横盘日为零")
+    mech = next(m for m in M.MECHANISMS if m["id"] == "ts_candle")
+    prompt = M.build_generation_prompt(mech, ALLOWED)
+    assert "已知缺陷" in prompt and "横盘日为零" in prompt
+    # 持久化:重置缓存后仍在
+    M._family_notes = None
+    assert "div 分母" in M.build_generation_prompt(mech, ALLOWED)
+
+
+def test_generate_registers_family():
+    """生成成功登记 hash→机制族,供终审拒因回流定位。"""
+    prov = MockProvider(response="zscore(ma(close, 20))")
+    node = M.generate_expression(prov, ALLOWED)
+    assert M.family_of(node.expr_hash()) is not None
+
+
 # ---------------- 13 机制族数据 ----------------
 
 def test_mechanisms_count_and_categories():

@@ -119,7 +119,7 @@ def main() -> None:
         # 6) LLM 终审
         verdict = ""
         if not args.no_llm:
-            accept, why = review_expression(llm, parse(f["expr"]))
+            accept, why = review_expression(llm, parse(f["expr"]), metrics=f.get("metrics"))
             verdict = "终审:ACCEPT" if accept else "终审:REJECT"
             if not accept:
                 flags.append(f"终审拒:{why[:60]}")

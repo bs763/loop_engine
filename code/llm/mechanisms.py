@@ -12,12 +12,66 @@ provider 由调用方注入(可切换 DeepSeek/GLM/Mock)。
 """
 from __future__ import annotations
 
+import json
 import re
+from pathlib import Path
 
 import numpy as np
 
 from engine.expression import Node, parse, random_tree
 from engine.operators import CS_OP_NAMES, ELEM_OP_NAMES, TS_OP_NAMES
+
+# ============================================================================
+# 族级缺陷记忆(终审拒因回流,用户 2026-08-18 设计)——防 Goodhart 安全变体:
+# 只回流「结构/边界/经济」类批评(先验知识),指标类拒因只进台账,指标数值永不回流生成端。
+# ============================================================================
+_FAMILY_NOTES_PATH = Path("output/family_notes.json")     # 相对项目根(与 lessons 同级)
+_family_notes: dict | None = None
+
+
+def family_notes() -> dict:
+    """{机制族id: [已知缺陷, ...]},惰性加载自 output/family_notes.json,跨轮持久。"""
+    global _family_notes
+    if _family_notes is None:
+        try:
+            _family_notes = json.loads(_FAMILY_NOTES_PATH.read_text(encoding="utf-8"))
+        except Exception:  # noqa: BLE001  首次/损坏 → 空
+            _family_notes = {}
+    return _family_notes
+
+
+def add_family_note(mech_id: str, note: str, cap: int = 5) -> None:
+    """记录一条该机制族的已知缺陷(去重,每族最多 cap 条),立即落盘。"""
+    notes = family_notes().setdefault(mech_id, [])
+    if note not in notes:
+        notes.append(note)
+        del notes[:-cap]
+        _FAMILY_NOTES_PATH.parent.mkdir(parents=True, exist_ok=True)
+        _FAMILY_NOTES_PATH.write_text(json.dumps(family_notes(), ensure_ascii=False, indent=1),
+                                      encoding="utf-8")
+
+
+# 终审拒因分类:含指标词汇 → 指标类(不回流);否则 → 结构/经济类(可回流生成端)
+_METRIC_HINTS = ("IC", "ic", "夏普", "ICIR", "年化", "收益", "单调", "超额", "回撤",
+                 "almar", "年份", "多头", "多空", "turnover", "胜率")
+
+
+def is_metric_reason(reason: str) -> bool:
+    return any(h in reason for h in _METRIC_HINTS)
+
+
+# 表达式 hash → 生成它的机制族 id(进程内登记;生成与终审同进程,足够)
+_expr_family: dict[str, str] = {}
+
+
+def family_of(expr_hash: str) -> str | None:
+    return _expr_family.get(expr_hash)
+
+
+def _register_family(expr_hash: str, mech_id: str, cap: int = 4000) -> None:
+    _expr_family[expr_hash] = mech_id
+    if len(_expr_family) > cap:
+        _expr_family.pop(next(iter(_expr_family)))
 
 # ============================================================================
 # 12 机制族(时序 8 + 截面 4)——以图表 7 为准(见模块 docstring)
@@ -100,6 +154,8 @@ def _grammar() -> str:
 
 
 def build_generation_prompt(mech: dict, fields: list[str]) -> str:
+    notes = family_notes().get(mech.get("id", ""), [])
+    avoid = ("\n【该机制族的已知缺陷,生成时务必规避】\n- " + "\n- ".join(notes)) if notes else ""
     return f"""你是 A 股量化研究员。基于下列因子语法,生成【恰好一个】因子表达式,体现指定市场机制。
 
 【算子(14)】
@@ -109,18 +165,35 @@ def build_generation_prompt(mech: dict, fields: list[str]) -> str:
 - s-表达式嵌套,最大深度 4 层;
 - add/sub 不得跨量纲(禁止 add(close, volume) 这类);只用上面字段;窗口为正整数。
 【目标机制】{mech['name']}: {', '.join(mech['prototypes'])}
-【经济学假设】{mech['hint']}
+【经济学假设】{mech['hint']}{avoid}
 
 只输出一个合法 s-表达式,不要解释、不要 markdown。"""
 
 
-def build_review_prompt(node: Node) -> str:
+def build_review_prompt(node: Node, metrics=None) -> str:
+    """终审 prompt。metrics 可携带 IS 回测指标(选择端可见,防 Goodhart 不禁)——
+    仅供诊断(单年依赖/多头无肉等规则盲区),不得仅因指标高低拒收(门槛由 16 项规则负责)。"""
+    mblock = ""
+    if metrics is not None:
+        g = (metrics.get if isinstance(metrics, dict)
+             else lambda k: getattr(metrics, k, None))
+        annual = (metrics.get("annual_ls_return") if isinstance(metrics, dict)
+                  else getattr(metrics, "annual_ls_return", None)) or {}
+        yr = ("  逐年多空: " + ", ".join(f"{y}:{v:+.1%}" for y, v in sorted(annual.items()))
+              if annual else "")
+        mblock = f"""
+【IS 回测指标(仅诊断参考;不得仅因指标高低而拒/收——指标门槛由 16 项规则负责)】
+IC={g('ic_mean'):+.4f} ICIR={g('icir'):.2f} 夏普={g('ls_sharpe'):.2f} Calmar={g('calmar'):.2f}
+多头超额年化={g('long_excess_annual'):+.2%} 单调性={g('monotonicity'):.2f}{yr}
+→ 先逐项核对逐年多空再裁决:①若最大单年收益超过其余年份总和(收益集中于单一年份),
+  必须拒;②若半数以上年份收益接近零(如 |y|<2%),倾向拒(单年依赖);③若多头超额
+  年化<1% 而多空尚可(空头独撑),倾向拒。核对结论必须写进理由。"""
     return f"""你是 A 股量化研究员,审查因子表达式的边界合理性。
 
 【表达式】{node.to_str()}
 【字段含义】{FIELD_MEANINGS}
 【算子语义】时序算子(ma/std/max/min/roc/delta/skew/rank_ts)的第二参数是**滚动窗口天数**,
-如 max(x, 40) = x 的 40 日滚动最大值——**不是数值截断**;zscore/rank_cs 为逐截面(跨股票)算子。
+如 max(x, 40) = x 的 40 日滚动最大值——**不是数值截断**;zscore/rank_cs 为逐截面(跨股票)算子。{mblock}
 
 请检查:① 边界条件(除零、极端窗口、量纲错配);② 经济学含义是否自洽;
 ③ 过度平滑(仅限两种确定性口径,其它一律不算违规):平滑算子的**直接子节点**也是平滑算子
@@ -230,15 +303,18 @@ def generate_expression(provider, fields: list[str], mechanisms: list[dict] | No
         node = extract_expression(text, allowed_fields=fields)
         if node is not None and not node.is_leaf():
             _bump(provider, "llm_gen_ok")
+            _register_family(node.expr_hash(), mech["id"])   # 供终审拒因回流定位族
             return node
         _bump(provider, "llm_gen_bad_output")
     _bump(provider, "llm_gen_fallback")
     return random_tree(fields, rng=rng)  # 全失败兜底(API 错或输出非法)
 
 
-def review_expression(provider, node: Node, temperature: float = 0.1) -> tuple[bool, str]:
-    """LLM 审查精判:返回 (accept, reason)。LLM 超时/连接错 → 放行(不崩)。"""
-    prompt = build_review_prompt(node)
+def review_expression(provider, node: Node, temperature: float = 0.1,
+                      metrics=None) -> tuple[bool, str]:
+    """LLM 审查精判:返回 (accept, reason)。metrics=IS 回测指标(仅诊断参考,选择端合法)。
+    LLM 超时/连接错 → 放行(不崩)。"""
+    prompt = build_review_prompt(node, metrics=metrics)
     try:
         text = provider.complete(prompt, temperature=temperature)
     except Exception:
