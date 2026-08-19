@@ -161,8 +161,9 @@
   <div class="fbox gen"><div class="ft">随机生成</div><div class="fd">完全随机的表达式树<br>(~15%)</div></div>
 </div>
 
-<h3>4.2 大模型怎么生成因子</h3>
-<p>系统定义了 <b>12 个市场机制族</b>(趋势动量、均值回归、边界突破、K线形态、跳空定价、波动压缩…),每个族附带经济学假设。每次调用 LLM 时:</p>
+<h3>4.2 大模型怎么生成因子——从经济学假设到数学表达式</h3>
+<p>系统预置了 <b>12 张「经济学假设卡片」</b>,每张描述一种市场无效性(为什么某些股票会涨/跌的经济学解释)。每次调用大模型时,系统<b>选一张卡片</b>作为「任务书」:</p>
+
 <pre><code>你是A股量化研究员。基于下列因子语法,生成恰好一个因子表达式。
 
 【算子(14)】 ma, std, max, min, roc, delta, skew, rank_ts,
@@ -173,19 +174,44 @@
 【硬规则】s-表达式嵌套,最大深度4层;
          add/sub不得跨量纲;窗口为正整数
 
-【目标机制】跳空与隔夜定价: 隔夜跳空, 隔夜延续, 日内回补
+<b>【目标机制】跳空与隔夜定价: 隔夜跳空, 隔夜延续, 日内回补
 【经济学假设】隔夜信息不对称——机构在开盘前集中交易,
-            隔夜跳空的方向和大小包含知情交易者的信号
+            隔夜跳空的方向和大小包含知情交易者的信号</b>
 
 只输出一个合法s-表达式。</code></pre>
-<p>LLM 返回如 <code>sub(rank_cs(ma(overnight, 10)), rank_cs(ma(intraday, 10)))</code>,系统解析并验证其结构合法性。</p>
 
-<div class="callout">
-<b>为什么用大模型?</b> 纯随机生成会产生大量无意义的组合(如 <code>mul(volume, hl_ratio)</code>)。LLM 理解经济学含义,能生成<b>有投资逻辑支撑</b>的候选——同等搜索预算下,有效率远高于随机。
+<p>大模型读到这张卡片后的<b>思维过程</b>:</p>
+
+<div class="tree">
+<div class="lvl1">📖 读到经济学假设: "隔夜信息不对称,跳空包含知情交易者信号"</div>
+<div class="lvl2">↓ 我需要度量「隔夜跳空的方向和大小」</div>
+<div class="lvl3">→ 看13个字段……<span class="fld">overnight</span> = 今开/昨收-1,正是跳空的度量!</div>
+<div class="lvl2">↓ 单日跳空噪声大,需要平滑</div>
+<div class="lvl3">→ <span class="op">ma</span>(<span class="fld">overnight</span>, <span class="win">10</span>) = 10日平均隔夜收益</div>
+<div class="lvl2">↓ 假设说跳空有信号,但日内可能回补——我对比隔夜和日内</div>
+<div class="lvl3">→ <span class="op">sub</span>(<span class="op">rank_cs</span>(<span class="op">ma</span>(<span class="fld">overnight</span>, <span class="win">10</span>)), <span class="op">rank_cs</span>(<span class="op">ma</span>(<span class="fld">intraday</span>, <span class="win">10</span>)))</div>
+<div class="lvl2">↓ 输出这个表达式,系统验证结构合法性后送入回测</div>
 </div>
 
-<h3>4.3 演化搜索</h3>
-<p>已入库的因子成为「父母」,通过<b>变异</b>(换一个叶子字段)和<b>交叉</b>(拼接两个因子的子树)产生「子代」。好的因子被反复变异精炼,差的自然淘汰——这就是<b>演化算法</b>的核心思想。</p>
+<p><b>大模型做的事 = 把经济学语言翻译成数学语言</b>:</p>
+<table>
+<tr><th>经济学概念(卡片上的话)</th><th>数学表达(生成的代码)</th></tr>
+<tr><td>"隔夜跳空的方向和大小"</td><td><code>overnight</code> 字段</td></tr>
+<tr><td>"持续性信号"</td><td><code>ma(·, 10)</code> 平滑窗口</td></tr>
+<tr><td>"哪些股票的跳空最极端"</td><td><code>rank_cs(·)</code> 截面排名</td></tr>
+<tr><td>"日内可能回补"</td><td>减去 <code>rank_cs(ma(intraday,10))</code></td></tr>
+<tr><td><b>组合</b></td><td><code>sub(rank_cs(ma(overnight,10)), rank_cs(ma(intraday,10)))</code></td></tr>
+</table>
+
+<div class="callout">
+<b>为什么需要经济学假设?</b> 没有假设时,大模型只会随机组合算子(如 <code>mul(volume, hl_ratio)</code>——数学上合法但毫无投资逻辑)。有了假设,大模型理解<b>要捕获什么市场现象</b>,再设计度量它的数学工具。<b>假设是灵魂,表达式是躯体</b>。
+</div>
+
+<h3>4.3 机制选择:偏向未挖掘区域</h3>
+<p>系统不是均匀地轮选12张卡片,而是<b>偏向当前库内覆盖不足的机制族</b>——统计每个族的字段在库内被使用的频率,用得越少,被选中概率越高。这确保探索是定向的:已充分挖掘的领域少投入,空白领域多投入。</p>
+
+<h3>4.4 演化搜索</h3>
+<p>已入库的因子成为「父母」,通过<b>变异</b>(换一个叶子字段——比如把上面例子中的 <code>intraday</code> 换成 <code>skew(ret,40)</code>)和<b>交叉</b>(拼接两个因子的子树)产生「子代」。好的因子被反复变异精炼,差的自然淘汰——这就是<b>演化算法</b>的核心思想。</p>
 </div>
 
 <!-- ═══════════════════ 5 ═══════════════════ -->
@@ -354,6 +380,25 @@ LLM 终审(表达式+指标+逐年分布)
 
 <h3>OOS 崩塌跳闸</h3>
 <p>每轮自动检查:如果库内因子OOS中位IC ≤ 0 或负占比 ≥ 50%,系统<b>立即停止</b>并向用户汇报全库衰减明细,等待人工决策。</p>
+
+<h3>12 张经济学假设卡片(完整版)</h3>
+<p>每张卡片包含:机制名称、子现象(prototypes)、经济学假设(hint)、相关字段。大模型生成时收到其中一张作为「任务书」。</p>
+<table>
+<tr><th>#</th><th>机制族</th><th>子现象</th><th>经济学假设</th><th>相关字段</th></tr>
+<tr><td>1</td><td><b>趋势与动量</b></td><td>趋势启动 · 趋势延续 · 动量衰竭</td><td>价格/收益的持续性:过去N日收益或均线斜率具有惯性,延续或衰竭</td><td>ret, adj_close, overnight</td></tr>
+<tr><td>2</td><td><b>反转与均值回归</b></td><td>短期过度反应 · 抛压耗尽后修复 · 突破失败后反转</td><td>短期极端收益后的均值回归;过度下跌/抛压释放后的修复</td><td>ret, overnight, hl_ratio</td></tr>
+<tr><td>3</td><td><b>边界突破</b></td><td>上沿突破并站稳 · 下沿跌破并延续 · 回踩确认后再启动</td><td>价格突破近期高/低边界后的延续,或回踩确认</td><td>adj_high, adj_low, adj_close, hl_ratio</td></tr>
+<tr><td>4</td><td><b>K线与日内结构</b></td><td>实体强度与收盘位置 · 影线压力与价格拒绝 · 多日转折结构</td><td>K线形态反映日内买卖力量对比;影线/实体比例包含供需信息</td><td>up_shadow, down_shadow, amplitude, hl_ratio</td></tr>
+<tr><td>5</td><td><b>跳空与隔夜定价</b></td><td>隔夜跳空 · 隔夜延续 · 日内回补</td><td>隔夜信息不对称——机构在开盘前集中交易,隔夜跳空的方向和大小包含知情交易者的信号</td><td>overnight, intraday, amplitude</td></tr>
+<tr><td>6</td><td><b>波动压缩与释放</b></td><td>波动收敛后突破 · 波动放大后回归 · 波动率传染</td><td>低波动状态不可持续,压缩后往往有大幅方向性运动(波动率聚集)</td><td>amplitude, up_shadow, down_shadow, hl_ratio</td></tr>
+<tr><td>7</td><td><b>波动状态切换</b></td><td>高波动持续 · 低波动持续 · 状态跃迁</td><td>波动率有聚集性和状态依赖性;不同波动状态下因子表现不同</td><td>amplitude, hl_ratio, up_shadow</td></tr>
+<tr><td>8</td><td><b>流动性/规模溢价</b></td><td>小市值溢价 · 流动性溢价 · 规模因子切换</td><td>小市值和低流动性股票要求更高回报作为风险补偿;但此效应有时变性和反转</td><td>log_mv, log_amount, log_volume</td></tr>
+<tr><td>9</td><td><b>截面量价关系</b></td><td>放量上涨/缩量下跌 · 量价背离 · 量能先行</td><td>成交量是价格变动的确认或先行指标;量价组合模式包含信息</td><td>log_volume, log_amount, ret</td></tr>
+<tr><td>10</td><td><b>截面规模动量</b></td><td>规模因子动量 · 规模因子反转 · 规模切换</td><td>市值排名的变化率(规模动量)反映市场对股票的重新定价</td><td>log_mv, log_amount</td></tr>
+<tr><td>11</td><td><b>截面偏度效应</b></td><td>收益偏度 · 价格偏度 · 偏度与彩票偏好</td><td>收益分布的偏度反映投资者的彩票偏好;左偏(极端损失多)的股票被高估</td><td>ret, adj_close, adj_high</td></tr>
+<tr><td>12</td><td><b>截面波动率</b></td><td>高波动溢价 · 低波动异象 · 波动率排名</td><td>低波动异象——低波动股票长期跑赢高波动股票(行为金融学解释)</td><td>ret, amplitude, hl_ratio</td></tr>
+</table>
+<p style="color:var(--mut);font-size:13px">注:系统在选择卡片时,会额外加权偏向当前库内覆盖不足的族(见 §4.3),以及用户指定的优先族(如跳空/隔夜类 boost 4x)。</p>
 </div>
 
 <div class="footer">factor_loop_engine · 2026-08-19 重写 · github.com/bs763/loop_engine</div>
