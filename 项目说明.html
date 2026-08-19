@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>factor_loop_engine · 项目说明</title>
+<title>factor_loop_engine · 因子自动发现引擎</title>
 <style>
   :root{
     --bg:#0f1419; --card:#1a2029; --card2:#222b36; --border:#2d3744;
@@ -13,15 +13,15 @@
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--txt);
     font-family:"PingFang SC","Microsoft YaHei","Segoe UI",-apple-system,sans-serif;
-    line-height:1.7;font-size:15px}
-  .wrap{max-width:1000px;margin:0 auto;padding:0 24px 80px}
+    line-height:1.75;font-size:15px}
+  .wrap{max-width:960px;margin:0 auto;padding:0 24px 80px}
   header{background:linear-gradient(135deg,#1a2029,#0f1419);padding:40px 24px 28px;
     border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10;backdrop-filter:blur(6px)}
-  header .inner{max-width:1000px;margin:0 auto}
-  h1{margin:0 0 6px;font-size:26px;letter-spacing:.5px}
-  h1 .tag{color:var(--acc);font-weight:400;font-size:15px;margin-left:8px}
-  .sub{color:var(--mut);font-size:14px;margin:0}
-  h2{font-size:20px;margin:42px 0 14px;padding-bottom:8px;border-bottom:2px solid var(--border);
+  header .inner{max-width:960px;margin:0 auto}
+  h1{margin:0 0 6px;font-size:24px;letter-spacing:.5px}
+  h1 .tag{color:var(--acc);font-weight:400;font-size:14px;margin-left:8px}
+  .sub{color:var(--mut);font-size:13px;margin:0}
+  h2{font-size:20px;margin:44px 0 14px;padding-bottom:8px;border-bottom:2px solid var(--border);
     color:var(--acc);display:flex;align-items:center;gap:8px}
   h2 .n{background:var(--acc);color:#0f1419;border-radius:6px;padding:1px 9px;font-size:14px;font-weight:700}
   h3{font-size:16px;margin:22px 0 8px;color:var(--blue)}
@@ -33,7 +33,7 @@
   @media(max-width:720px){.g2,.g3{grid-template-columns:1fr}}
   .mini{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
   .mini b{color:var(--acc2)}
-  code,kbd,.code{font-family:"JetBrains Mono","Cascadia Code",Consolas,monospace;font-size:13px}
+  code,kbd{font-family:"JetBrains Mono","Cascadia Code",Consolas,monospace;font-size:13px}
   kbd{background:var(--code);border:1px solid var(--border);border-radius:5px;padding:2px 7px;color:var(--acc)}
   pre{background:var(--code);border:1px solid var(--border);border-radius:8px;padding:14px;overflow:auto;color:#c9d1d9}
   pre code{font-size:13px;line-height:1.6}
@@ -42,303 +42,321 @@
   th{background:var(--card2);color:var(--acc);font-weight:600}
   tr:nth-child(even) td{background:rgba(255,255,255,.015)}
   .flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:0;margin:18px 0}
-  .fbox{flex:1 1 120px;min-width:120px;background:var(--card);border:1px solid var(--border);
+  .fbox{flex:1 1 110px;min-width:110px;background:var(--card);border:1px solid var(--border);
     border-top:3px solid var(--acc);border-radius:8px;padding:10px 12px;text-align:center}
-  .fbox .ft{font-weight:700;font-size:14px;color:var(--acc)}
-  .fbox .fd{font-size:12px;color:var(--mut);margin-top:3px;line-height:1.4}
+  .fbox .ft{font-weight:700;font-size:13px;color:var(--acc)}
+  .fbox .fd{font-size:11.5px;color:var(--mut);margin-top:3px;line-height:1.35}
   .farr{display:flex;align-items:center;color:var(--mut);padding:0 4px;font-size:18px}
   .fbox.data{border-top-color:var(--blue)} .fbox.data .ft{color:var(--blue)}
   .fbox.gen{border-top-color:var(--acc2)} .fbox.gen .ft{color:var(--acc2)}
   .fbox.rev{border-top-color:var(--amber)} .fbox.rev .ft{color:var(--amber)}
   .fbox.bt{border-top-color:var(--pink)} .fbox.bt .ft{color:var(--pink)}
-  .loopband{background:linear-gradient(90deg,rgba(79,209,197,.08),rgba(104,211,145,.08));
-    border:1px dashed var(--acc);border-radius:10px;padding:14px 18px;margin:10px 0}
-  .loopband b{color:var(--acc)}
-  .pill{display:inline-block;background:var(--card2);border:1px solid var(--border);border-radius:20px;
-    padding:2px 11px;font-size:12px;color:var(--mut);margin:2px}
+  .tree{font-family:"JetBrains Mono",Consolas,monospace;font-size:13px;line-height:1.8;
+    background:var(--code);border:1px solid var(--border);border-radius:8px;padding:16px;overflow:auto;color:#c9d1d9}
+  .tree .op{color:var(--acc);font-weight:bold}
+  .tree .fld{color:var(--amber)}
+  .tree .win{color:var(--pink)}
+  .tree .lvl1{margin-left:0}
+  .tree .lvl2{margin-left:2em}
+  .tree .lvl3{margin-left:4em}
+  .tree .lvl4{margin-left:6em}
   .ok{color:var(--acc2)} .warn{color:var(--amber)}
-  .toc{columns:2;font-size:13.5px;color:var(--mut);margin:10px 0}
-  .toc a{color:var(--blue);text-decoration:none}
-  .toc a:hover{text-decoration:underline}
   .footer{color:var(--mut);font-size:12px;text-align:center;margin-top:50px;padding-top:18px;border-top:1px solid var(--border)}
+  .callout{background:rgba(79,209,197,.06);border-left:3px solid var(--acc);border-radius:0 8px 8px 0;
+    padding:12px 16px;margin:14px 0;font-size:14px}
+  .callout b{color:var(--acc)}
 </style>
 </head>
 <body>
 <header><div class="inner">
-  <h1>factor_loop_engine<span class="tag">Loop+Engineering 自动化因子发现引擎</span></h1>
-  <p class="sub">基于中金《大模型系列(7)》· 161 测试 · alphalab 真实回测 · GLM-5.3 双端 · IS-ONLY 准入 + OOS 样本外监控 · 2026-08-18 全量重写</p>
+  <h1>factor_loop_engine<span class="tag">用大模型和演化算法自动发现有预测力的A股量化因子</span></h1>
+  <p class="sub">一句话:把「设计因子 → 回测 → 筛选 → 迭代改进」这个量化研究员的核心工作循环,封装为一个 7×24 自动运行的闭环系统。</p>
 </div></header>
 
 <div class="wrap">
 
-<p class="toc">
-  <a href="#ov">① 概述</a> ·
-  <a href="#flow">② 系统全景</a> ·
-  <a href="#data">③ 数据层与样本切分</a> ·
-  <a href="#isonly">④ IS-ONLY 完整机制</a> ·
-  <a href="#gen">⑤ 生成层</a> ·
-  <a href="#rev">⑥ 审查层</a> ·
-  <a href="#bt">⑦ 回测层</a> ·
-  <a href="#flt">⑧ 过滤层(16项)</a> ·
-  <a href="#final">⑨ LLM 终审与拒因回流</a> ·
-  <a href="#store">⑩ 入库·工具·监控</a> ·
-  <a href="#loop">⑪ Loop 调度</a> ·
-  <a href="#use">⑫ 使用手册</a> ·
-  <a href="#chg">⑬ 变更记录</a> ·
-  <a href="#param">附录·参数</a>
-</p>
-
-<!-- 1 概述 -->
-<h2 id="ov"><span class="n">1</span>概述</h2>
+<!-- ═══════════════════ 1 ═══════════════════ -->
+<h2><span class="n">1</span>因子是什么——用树表达式表示交易信号</h2>
 <div class="card">
-<p>把因子挖掘的<b>"生成 — 审查 — 回测 — 过滤 — 入库"</b>封装为<b>定时调度、断点续跑</b>的自动化闭环,2026-08-17/18 完成<strong>样本外验证体系</strong>改造:</p>
-<div class="grid g3">
-  <div class="mini"><b>IS-ONLY 准入</b><br><span style="color:var(--mut)">全部筛选只看样本内 2018-01~2023-06;OOS(2025)只存档报告,永不参与选择</span></div>
-  <div class="mini"><b>GLM-5.3 双端</b><br><span style="color:var(--mut)">机制引导生成 + 带指标的 LLM 终审;拒因安全回流(结构类进族记忆,指标类永不回流)</span></div>
-  <div class="mini"><b>结构先验防线</b><br><span style="color:var(--mut)">过度平滑/极值嵌套拒绝、同构家族保优淘劣、覆盖率防线、算子数值消毒</span></div>
-</div>
-<p style="margin-top:12px"><b style="color:var(--amber)">两条铁律</b>:① 防 Goodhart——回测指标只在选择端(过滤/终审)流转,<b>永不回流生成端</b>;② OOS 样本外——2025 年数据只进 <code>oos_metrics</code> 存档与报告,任何筛选分支不读它。</p>
-<p><b>当前库存</b>(2026-08-18):<span class="ok">11 个因子</span>(全部按 IS 规则重准入过),iter 369,累计测试 1.5 万表达式。OOS(2025)首检:IC 全部持平或更强,夏普分化(头部 3.4+,尾部 1.0-1.4)。</p>
+<p>在A股市场,一个<b>量化因子</b>就是一条「给每只股票打分」的规则。分数高的股票未来更可能涨(或跌)。比如「过去20天成交额的波动率低的股票未来表现更好」——这就是一个因子。</p>
+<p>本项目把因子表示为<b>表达式树</b>(一种嵌套的函数调用结构),这既是人类可读的数学语言,也是计算机可执行的程序:</p>
+
+<div class="tree">
+<div class="lvl1"><span class="op">add</span>(</div>
+<div class="lvl2"><span class="op">zscore</span>(<span class="op">std</span>(<span class="op">rank_cs</span>(<span class="fld">log_mv</span>), <span class="win">20</span>)),</div>
+<div class="lvl2"><span class="op">add</span>(</div>
+<div class="lvl3"><span class="op">rank_cs</span>(<span class="fld">log_mv</span>),</div>
+<div class="lvl3"><span class="op">rank_cs</span>(<span class="fld">log_amount</span>)</div>
+<div class="lvl2">)</div>
+<div class="lvl1">)</div>
 </div>
 
-<!-- 2 全景 -->
-<h2 id="flow"><span class="n">2</span>系统全景</h2>
+<p>这个因子含义是:<b>「市值排名的不稳定性 + 市值排名 + 成交额排名」的加权组合</b>。它的每个组成部分:</p>
+<table>
+<tr><th>元素</th><th>含义</th><th>角色</th></tr>
+<tr><td><code>log_mv</code> / <code>log_amount</code></td><td>对数市值 / 对数成交额</td><td><b>叶子</b>(数据字段)</td></tr>
+<tr><td><code>rank_cs(x)</code></td><td>每天把所有股票按 x 排名,映射到 [0,1]</td><td><b>截面算子</b>(跨股票比较)</td></tr>
+<tr><td><code>std(x, 20)</code></td><td>每只股票过去 20 天 x 的标准差</td><td><b>时序算子</b>(纵向滚动)</td></tr>
+<tr><td><code>zscore(x)</code></td><td>截面标准化(均值0、标准差1)</td><td><b>截面算子</b></td></tr>
+<tr><td><code>add(a, b)</code></td><td>a + b(逐股票相加)</td><td><b>逐元素算子</b></td></tr>
+</table>
+<p><b>树的深度限制为 4 层</b>——足够表达丰富的信号组合,又不至于过度复杂导致过拟合。</p>
+</div>
+
+<!-- ═══════════════════ 2 ═══════════════════ -->
+<h2><span class="n">2</span>数据——13 个基础字段,2015~2025 全A股</h2>
+<div class="card">
+<p>所有因子从这 13 个字段构建。数据来自 OSS 分钟K线,聚合为日频宽表(行=交易日,列=股票):</p>
+<table>
+<tr><th>字段</th><th>含义</th><th>类型</th></tr>
+<tr><td><code>adj_close / adj_high / adj_low</code></td><td>复权收盘/最高/最低价</td><td>价格</td></tr>
+<tr><td><code>ret</code></td><td>日收益率</td><td>比率</td></tr>
+<tr><td><code>overnight</code></td><td>隔夜收益(今开/昨收-1)</td><td>比率</td></tr>
+<tr><td><code>intraday</code></td><td>日内收益(今收/今开-1)</td><td>比率</td></tr>
+<tr><td><code>amplitude</code></td><td>振幅(最高-最低)/收盘</td><td>比率</td></tr>
+<tr><td><code>up_shadow / down_shadow</code></td><td>上影线/下影线占比</td><td>比率</td></tr>
+<tr><td><code>hl_ratio</code></td><td>收盘位置(收-低)/(高-低)</td><td>比率</td></tr>
+<tr><td><code>log_volume / log_amount</code></td><td>对数成交量/成交额</td><td>量额</td></tr>
+<tr><td><code>log_mv</code></td><td>对数市值(close×流通股本)</td><td>规模</td></tr>
+</table>
+<div class="callout">
+<b>为什么只有13个字段?</b> 刻意保持精简——字段太多会让搜索空间爆炸,且容易找到虚假的「数据挖掘效应」。13个字段 × 14个算子 × 4层深度,组合空间已经足够大。
+</div>
+</div>
+
+<!-- ═══════════════════ 3 ═══════════════════ -->
+<h2><span class="n">3</span>算子——14 个构建模块</h2>
+<div class="card">
+<p>算子是构建因子表达式的「函数」。分三类:</p>
+<table>
+<tr><th>类别</th><th>算子</th><th>作用</th><th>示例</th></tr>
+<tr><td rowspan="7"><b>时序算子</b><br><span style="color:var(--mut);font-size:12px">沿时间轴滚动<br>第二个参数=窗口天数</span></td>
+    <td><code>ma(x, n)</code></td><td>n日均值</td><td><code>ma(close, 20)</code> = 20日均线</td></tr>
+<tr><td><code>std(x, n)</code></td><td>n日标准差</td><td><code>std(ret, 20)</code> = 20日波动率</td></tr>
+<tr><td><code>max(x, n)</code> / <code>min(x, n)</code></td><td>n日滚动最高/最低</td><td><code>max(volume, 60)</code> = 60日最大量</td></tr>
+<tr><td><code>roc(x, n)</code></td><td>n日变化率</td><td><code>roc(close, 20)</code> = 20日涨幅</td></tr>
+<tr><td><code>delta(x, n)</code></td><td>n日差分</td><td><code>delta(close, 5)</code> = 5日价格变化</td></tr>
+<tr><td><code>skew(x, n)</code></td><td>n日偏度</td><td><code>skew(ret, 60)</code> = 收益分布偏斜</td></tr>
+<tr><td><code>rank_ts(x, n)</code></td><td>当前值在n日内的分位</td><td><code>rank_ts(volume, 120)</code> = 量的时间分位</td></tr>
+<tr><td rowspan="2"><b>截面算子</b><br><span style="color:var(--mut);font-size:12px">每天跨所有股票</span></td>
+    <td><code>rank_cs(x)</code></td><td>截面排名 → [0,1]</td><td><code>rank_cs(log_mv)</code> = 市值排名</td></tr>
+<tr><td><code>zscore(x)</code></td><td>截面标准化</td><td><code>zscore(ret)</code> = 今日超额收益</td></tr>
+<tr><td rowspan="4"><b>逐元素算子</b><br><span style="color:var(--mut);font-size:12px">两只股票的值做运算</span></td>
+    <td><code>add(a, b)</code> / <code>sub(a, b)</code></td><td>加/减</td><td><code>add(rank_cs(mv), rank_cs(amount))</code></td></tr>
+<tr><td><code>mul(a, b)</code></td><td>乘</td><td><code>mul(std(ret,20), rank_cs(log_mv))</code></td></tr>
+<tr><td><code>div(a, b)</code></td><td>除(除零→NaN)</td><td><code>div(adj_high, adj_low)</code></td></tr>
+</table>
+</div>
+
+<!-- ═══════════════════ 4 ═══════════════════ -->
+<h2><span class="n">4</span>因子生成——大模型引导 + 演化搜索</h2>
+<div class="card">
+<h3>4.1 五路并行生成</h3>
+<p>每轮生成 100 个候选因子,来自五种途径并行:</p>
+<div class="flow">
+  <div class="fbox gen"><div class="ft">LLM 机制引导</div><div class="fd">大模型按市场机制假设生成<br>(~20% 预算)</div></div>
+  <div class="fbox gen"><div class="ft">变异</div><div class="fd">从库内因子改一个叶子<br>(~25%)</div></div>
+  <div class="fbox gen"><div class="ft">交叉</div><div class="fd">两个因子的子树拼接<br>(~25%)</div></div>
+  <div class="fbox gen"><div class="ft">参数扰动</div><div class="fd">微调窗口大小<br>(~15%)</div></div>
+  <div class="fbox gen"><div class="ft">随机生成</div><div class="fd">完全随机的表达式树<br>(~15%)</div></div>
+</div>
+
+<h3>4.2 大模型怎么生成因子</h3>
+<p>系统定义了 <b>12 个市场机制族</b>(趋势动量、均值回归、边界突破、K线形态、跳空定价、波动压缩…),每个族附带经济学假设。每次调用 LLM 时:</p>
+<pre><code>你是A股量化研究员。基于下列因子语法,生成恰好一个因子表达式。
+
+【算子(14)】 ma, std, max, min, roc, delta, skew, rank_ts,
+             zscore, rank_cs, add, sub, mul, div
+【可用字段】adj_close, adj_high, adj_low, overnight, intraday,
+           amplitude, up_shadow, down_shadow, hl_ratio, ret,
+           log_volume, log_amount, log_mv
+【硬规则】s-表达式嵌套,最大深度4层;
+         add/sub不得跨量纲;窗口为正整数
+
+【目标机制】跳空与隔夜定价: 隔夜跳空, 隔夜延续, 日内回补
+【经济学假设】隔夜信息不对称——机构在开盘前集中交易,
+            隔夜跳空的方向和大小包含知情交易者的信号
+
+只输出一个合法s-表达式。</code></pre>
+<p>LLM 返回如 <code>sub(rank_cs(ma(overnight, 10)), rank_cs(ma(intraday, 10)))</code>,系统解析并验证其结构合法性。</p>
+
+<div class="callout">
+<b>为什么用大模型?</b> 纯随机生成会产生大量无意义的组合(如 <code>mul(volume, hl_ratio)</code>)。LLM 理解经济学含义,能生成<b>有投资逻辑支撑</b>的候选——同等搜索预算下,有效率远高于随机。
+</div>
+
+<h3>4.3 演化搜索</h3>
+<p>已入库的因子成为「父母」,通过<b>变异</b>(换一个叶子字段)和<b>交叉</b>(拼接两个因子的子树)产生「子代」。好的因子被反复变异精炼,差的自然淘汰——这就是<b>演化算法</b>的核心思想。</p>
+</div>
+
+<!-- ═══════════════════ 5 ═══════════════════ -->
+<h2><span class="n">5</span>因子验证——从表达到入库的六道关卡</h2>
 <div class="card">
 <div class="flow">
-  <div class="fbox data"><div class="ft">数据层</div><div class="fd">13 字段宽表<br>2015-2025 连续计算<br>数值三层消毒</div></div>
+  <div class="fbox data"><div class="ft">① 生成</div><div class="fd">100 个候选<br>LLM+演化+随机</div></div>
   <div class="farr">→</div>
-  <div class="fbox gen"><div class="ft">生成(IS盲)</div><div class="fd">五路预算+12机制族<br>族级「已知缺陷」规避栏<br>glm-5.3 + 兜底链</div></div>
+  <div class="fbox rev"><div class="ft">② 审查</div><div class="fd">结构合法性检查<br>量纲/深度/退化/嵌套</div></div>
   <div class="farr">→</div>
-  <div class="fbox rev"><div class="ft">审查</div><div class="fd">五道确定性过滤<br>+AC规范化+覆盖率防线<br>(零 API 成本)</div></div>
+  <div class="fbox bt"><div class="ft">③ 回测</div><div class="fd">alphalab 真实回测<br>2018~2023H1(样本内)</div></div>
   <div class="farr">→</div>
-  <div class="fbox bt"><div class="ft">IS 回测</div><div class="fd">alphalab·窗口化 yaml<br>3 线程 · 异常分类容错</div></div>
+  <div class="fbox"><div class="ft">④ 16项过滤</div><div class="fd">IC/夏普/Calmar<br>逐年/滚动/相关性…</div></div>
   <div class="farr">→</div>
-  <div class="fbox"><div class="ft">16 项过滤</div><div class="fd">全部 IS 口径<br>保优淘劣替换联动</div></div>
+  <div class="fbox rev"><div class="ft">⑤ LLM 终审</div><div class="fd">大模型检查经济学含义<br>+逐年收益分布诊断</div></div>
   <div class="farr">→</div>
-  <div class="fbox rev"><div class="ft">LLM 终审</div><div class="fd">表达式+算子语义<br>+IS指标与逐年表<br>拒因分类回流</div></div>
-  <div class="farr">→</div>
-  <div class="fbox"><div class="ft">入库</div><div class="fd">checkpoint 原子落盘<br>OOS 回测一次→存档</div></div>
-</div>
+  <div class="fbox"><div class="ft">⑥ 入库</div><div class="fd">存入因子库<br>同时跑一次 OOS 回测存档</div></div>
 </div>
 
-<!-- 3 数据与切分 -->
-<h2 id="data"><span class="n">3</span>数据层与样本切分</h2>
+<h3>5.1 审查(回测前,快速淘汰结构缺陷)</h3>
+<table>
+<tr><th>检查项</th><th>淘汰理由</th></tr>
+<tr><td>跨量纲</td><td>价格 + 成交量 → 单位不同,无意义</td></tr>
+<tr><td>同质退化</td><td><code>add(x, x)</code> = <code>2x</code>,冗余</td></tr>
+<tr><td>过度嵌套</td><td><code>std(std(x))</code> = 波动率的波动率,信号过度平滑</td></tr>
+<tr><td>深度不足</td><td>单字段(<code>close</code>)或单算子(<code>ma(close,20)</code>)太简单</td></tr>
+<tr><td>覆盖率塌陷</td><td>某月覆盖率骤降 → 数据缺失或结构缺陷</td></tr>
+</table>
+
+<h3>5.2 回测(alphalab 真实历史模拟)</h3>
+<p>通过审查的候选被送入 <b>alphalab</b> 回测引擎,在 2018~2023H1 的真实历史数据上模拟交易:</p>
+<ul>
+  <li><b>预测期</b>:5 天(周频调仓)</li>
+  <li><b>交易成本</b>:单边 10bps</li>
+  <li><b>股票池</b>:中证全指,剔除 ST/停牌/涨停开盘</li>
+  <li><b>预处理</b>:MAD去极值 → 标准化 → 行业市值中性化 → 标准化</li>
+</ul>
+<p>输出:<b>IC</b>(预测相关系数)、<b>ICIR</b>(预测稳定性)、<b>多空年化收益</b>、<b>夏普比率</b>、<b>Calmar</b>、<b>分组单调性</b>、<b>逐年收益</b>等。</p>
+
+<h3>5.3 十六项过滤(全部在样本内窗口计算)</h3>
+<table>
+<tr><th>维度</th><th>阈值</th><th>含义</th></tr>
+<tr><td>\|IC\| > 0.03</td><td>预测力足够</td><td>因子值与未来收益的相关性</td></tr>
+<tr><td>ICIR > 0.3</td><td>预测稳定</td><td>IC 的信息比率</td></tr>
+<tr><td>每年多空 > 0</td><td>不能有亏损年份</td><td>2018~2023 六年全正</td></tr>
+<tr><td>夏普 > 0.5</td><td>风险调整收益</td><td>整体+末年双重检查</td></tr>
+<tr><td>Calmar > 1.0</td><td>回撤可控</td><td>年化/最大回撤</td></tr>
+<tr><td>近9/12月 > 0</td><td>近期仍在赚钱</td><td>滚动检查</td></tr>
+<tr><td>多头超额 > 0</td><td>不能只靠做空</td><td>多头组合也要跑赢</td></tr>
+<tr><td>单调性 > 0.85</td><td>分组收益单调递增</td><td>十分组排序后收益递进</td></tr>
+<tr><td>IC相关 < 0.70</td><td>与库内已有因子不冗余</td><td>或质量更优时替换旧的</td></tr>
+<tr><td>同构子树 ≤ 2</td><td>防结构集中</td><td>防止同一半树反复出现</td></tr>
+</table>
+
+<h3>5.4 LLM 终审(最后一道关)</h3>
+<p>通过全部16项后,大模型收到<b>表达式+回测指标+逐年收益分布</b>,检查:</p>
+<ul>
+  <li>经济学含义是否自洽</li>
+  <li>收益是否集中在单一年份(→ 过拟合信号)</li>
+  <li>多头是否无肉而多空尚可(→ 空头独撑)</li>
+</ul>
+<p>拒绝理由如果是结构/经济学层面的,会被<b>回流到该机制族的生成 prompt</b>,让后续生成规避同类缺陷。</p>
+</div>
+
+<!-- ═══════════════════ 6 ═══════════════════ -->
+<h2><span class="n">6</span>防止过拟合——样本内/样本外分离</h2>
 <div class="card">
-<h3>字段面板</h3>
-<p><code>code/data_layer/</code>:OSS parquet → 日频字段 → 宽表(date × 股票),13 字段:<code>adj_close/high/low, overnight, intraday, amplitude, up/down_shadow, hl_ratio, ret, log_volume, log_amount, log_mv</code>,量纲组管理跨量纲审查。缓存 <code>cache/panels/</code>。</p>
-<h3>样本切分(2026-08-17 上线,核心)</h3>
-<pre><code>┌ 2015~2017 ─┬─ 2018-01 ~ 2023-06 ─┬─ 2023-07 ~ 2024-12 ─┬─ 2025 全年 ─┐
-│ IS 的 warmup │       样本内 IS        │      隔离带 18个月     │   样本外 OOS  │
-│ 只喂IS,不评测 │ 筛选/入库【只看这里】    │ 只作OOS的warmup,不评测 │ 只存档+报告   │
-└─────────────┴───────────────────────┴──────────────────────┴──────────────┘</code></pre>
+<p><b>过拟合</b>是量化因子最大的敌人——一个在历史上表现很好但对未来毫无预测力的因子,比没有因子更危险。本项目用<b>时间切分</b>来防御:</p>
+<pre><code>┌ 2015~2017 ─┬── 2018-01 ~ 2023-06 ──┬─ 2023-07 ~ 2024-12 ─┬─ 2025 全年 ─┐
+│  预热数据    │      样本内 (IS)        │      隔离带          │   样本外     │
+│ (不算指标)  │  16项筛选只看这里       │  (18个月缓冲)       │  (只报告)   │
+└─────────────┴───────────────────────┴─────────────────────┴─────────────┘</code></pre>
 <div class="grid g3">
-  <div class="mini"><b>隔离带宽度 = 18 个月</b><br><span style="color:var(--mut)">≥ 最深窗口链 310 交易日(如 ma(·,250)∘roc(·,60));保证 OOS 期任何一天的因子值只经隔离带,零触及 IS 评测期数据</span></div>
-  <div class="mini"><b>实现方式</b><br><span style="color:var(--mut)">面板从 2015 <b>连续</b>计算(滚动语义不变);写 alphalab 的 parquet 分别切 IS/OOS 窗口;适配层按窗口自动派生 yaml(sample.start/end 替换,缓存复用)</span></div>
-  <div class="mini"><b>warmup 零交集</b><br><span style="color:var(--mut)">IS 的 warmup=2015-2017,OOS 的 warmup=2023H2-2024,两段互不重叠且都不参与评测</span></div>
+  <div class="mini"><b>样本内(IS)</b><br><span style="color:var(--mut)">2018~2023H1,5.5年。所有筛选、入库、替换决策<b>只看这段数据</b>。</span></div>
+  <div class="mini"><b>隔离带</b><br><span style="color:var(--mut)">18个月,足够长窗口的滚动计算「预热」用,但<b>不参与任何评测</b>。</span></div>
+  <div class="mini"><b>样本外(OOS)</b><br><span style="color:var(--mut)">2025全年。因子入库时自动回测一次存档,<b>只报告、绝不参与筛选</b>。</span></div>
 </div>
-<h3>数值消毒(三层,2026-08-17)</h3>
-<p>原始面板实测零 ±inf——inf 全由 div/roc 除零生成(分母字段零值率:overnight 10.3%/up_shadow 8.6%/down_shadow 7.6%)→ ①叶子求值入口消毒;②<code>op_roc</code>/<code>op_div</code> 输出消毒;③<code>op_zscore</code> 入口消毒(防单 inf 毒化整截面)。<code>op_skew</code> 为自研滚动矩实现(pandas rolling skew 有幽灵 NaN bug:53 万格窗口完整仍返回 NaN)。</p>
+<div class="callout">
+<b>为什么OOS不能参与筛选?</b> 一旦用2025年数据来决定「哪个因子入库」,2025就成了样本内——你永远失去了对这个挖掘流程的真·样本外评估。OOS的作用是<b>事后诊断</b>:如果整库OOS崩塌,说明挖掘流程本身过拟合了,需要人工调整。
+</div>
 </div>
 
-<!-- 4 IS-ONLY 完整机制 -->
-<h2 id="isonly"><span class="n">4</span>IS-ONLY 完整机制(如何使用、如何影响因子库)</h2>
+<!-- ═══════════════════ 7 ═══════════════════ -->
+<h2><span class="n">7</span>因子库的进化——保优淘劣</h2>
 <div class="card">
-<h3>4.1 是什么</h3>
-<p><b>所有准入判定(16 项过滤 + LLM 终审)只在样本内窗口 2018-01-01~2023-06-30 上计算</b>;OOS(2025 全年)在入库瞬间被回测一次,结果存进因子记录的 <code>oos_metrics</code> 字段——<b>只写不读(选择端代码路径完全不接触)</b>。这是"样本外验证"的定义要求:选择过程必须对 holdout 失明,否则它就成了样本内。</p>
-<h3>4.2 一条因子的完整生命周期</h3>
-<pre><code>生成(IS盲:不接触任何回测指标)
-  → 确定性审查(结构层面,与窗口无关)
-  → IS 回测(2018-01~2023-06 的 parquet + 同窗口 yaml)
-  → 16 项过滤:逐年多空>0 查 2018-2023;末年夏普=2022H2~2023H1;
-              近9/12月滚动相对 2023-06;IC/相关性/家族 全在 IS 序列上
-  → LLM 终审(表达式 + IS 指标 + 逐年表 → 边界/经济/单年依赖)
-  → 入库:记录 IS 指标 + IS ic_series + 【OOS 回测一次 → oos_metrics】
-  → 日常:lib_status 的「IS→OOS 衰减表」展示每个因子 2025 真实表现
-  → 出库:仅三种途径——被更优挑战者替换(保优淘劣,IS 口径)、
-          结构治理(clean_library)、人工复检裁决(如 0007 冗余案)
-     OOS 表现【永远不是】出库依据</code></pre>
-<h3>4.3 对因子库的具体影响(已发生的历史)</h3>
+<p>因子库不是只进不出的仓库,而是一个<b>持续竞争的生态</b>:</p>
+<ul>
+  <li><b>新候选入库</b>:通过全部16项+LLM终审 → 加入库</li>
+  <li><b>保优淘劣</b>:如果新候选与某个库内因子IC相关性 ≥ 0.70,且综合质量全面更优(×1.05),则<b>替换</b>旧因子</li>
+  <li><b>同构限制</b>:任何子树结构最多在库内出现2次,防止结构集中</li>
+</ul>
+<p>结果是:库内因子始终是<b>各个信号家族中历史最优的代表</b>。随着挖掘轮次增加,弱因子被强因子替换,库整体质量单调上升。</p>
+
+<h3>7.1 运行节奏</h3>
+<div class="flow">
+  <div class="fbox"><div class="ft">深挖模式</div><div class="fd">连续有产出时<br>偏向变异+交叉精炼</div></div>
+  <div class="farr">⇄</div>
+  <div class="fbox"><div class="ft">探索模式</div><div class="fd">连续零产出时<br>偏向LLM+随机探索</div></div>
+</div>
+<p>系统在两种模式间自动切换:有新因子入库时进入<b>深挖</b>(在已知好结构附近精炼);连续多轮无产出时切换到<b>探索</b>(跳出当前邻域,寻找新信号源)。</p>
+</div>
+
+<!-- ═══════════════════ 8 ═══════════════════ -->
+<h2><span class="n">8</span>完整流水线总览</h2>
+<div class="card">
+<pre><code>
+OSS分钟K线 → 日频字段宽表(13字段) → 因子表达式树(候选100个/轮)
+     │                                    │
+     │                              ┌─────┴─────┐
+     │                              │ LLM 机制引导 │  ← 12个市场机制族
+     │                              │ 变异/交叉    │  ← 库内因子做父母
+     │                              │ 参数扰动    │
+     │                              │ 随机生成    │
+     │                              └─────┬─────┘
+     │                                    ↓
+     │                              审查(结构合法性)
+     │                                    ↓
+     ↓                                    ↓
+alphalab 真实回测 ←────────────  覆盖率检查
+(IS窗口 2018~2023H1)
+     ↓
+16项联合过滤
+(IC/ICIR/逐年/夏普/Calmar/滚动/多头/单调性/相关性/同构)
+     ↓
+LLM 终审(表达式+指标+逐年分布)
+     ↓
+入库 + OOS(2025)回测存档 ← 只报告,不参与筛选
+     ↓
+成为下一轮变异/交叉的父母 → 持续进化…
+</code></pre>
+</div>
+
+<!-- ═══════════════════ 附录 ═══════════════════ -->
+<h2><span class="n">附录</span>工程细节与安全措施</h2>
+<div class="card">
+<h3>工程架构</h3>
 <table>
-<tr><th>事件</th><th>机制</th><th>结果</th></tr>
-<tr><td>存量重准入(2026-08-17)</td><td>全窗口时代入选的 15 个,按 IS 规则重跑回测+16 项+终审</td><td>11 过 4 拒:2 个 IS 口径下撞 #9 相关(0.726/0.740)、1 个 IS |IC| 跌破 0.03、1 个被终审拒(div 分母振幅为零)——全窗口掩盖的冗余被清除</td></tr>
-<tr><td>保优淘劣换血</td><td>挑战者与在库者的质量比较全部用 IS 指标</td><td>曾出现四连替换(1 个更优换掉 4 个相关/同构旧因子)</td></tr>
-<tr><td>OOS 存档</td><td>每个入库因子自动带 2025 指标</td><td>首检:11 个 OOS IC 全部 ≥ IS IC(2025 风格友好),夏普分化暴露真实衰减</td></tr>
+<tr><th>组件</th><th>说明</th></tr>
+<tr><td>LLM</td><td>智谱 GLM-5.3(Anthropic兼容端点,Coding Plan订阅),生成+终审双端</td></tr>
+<tr><td>回测引擎</td><td>alphalab(独立子进程,3线程并行,每次回测~37秒)</td></tr>
+<tr><td>检查点</td><td>JSON原子落盘,任意中断可恢复</td></tr>
+<tr><td>版本管理</td><td>git + GitHub 每日自动备份</td></tr>
+<tr><td>调度</td><td>7×24 自动运行,高峰时段(9-12/14-18)暂停</td></tr>
+<tr><td>测试</td><td>168 个单元测试覆盖全部核心逻辑</td></tr>
 </table>
-<h3>4.4 如何使用</h3>
-<p><b>日常全自动</b>:每轮 <code>run_round_cli.py</code> 默认即 IS 准入 + OOS 存档,无需任何参数。手动工具:<code>health_check.py</code> 用库内 IS 指标复核阈值;<code>lib_status.py</code> 看衰减表;<code>export_factors.py</code> 导出全窗口(2018-2025)因子值供策略使用——因子<b>值</b>的导出与样本切分无关(切分约束的是<b>评测</b>)。</p>
-<h3>4.5 边界与决策(2026-08-18 用户拍板)</h3>
-<div class="grid g3">
-  <div class="mini"><b>OOS 系统性崩塌 → 跳闸</b><br><span style="color:var(--mut)">每轮 STATUS 后自动输出「OOS体检」:中位 OOS IC≤0 或负占比≥50% 即 <b>OOS ALERT → 立即停止 loop 向用户汇报</b>,等待人工决策(绝不程序化用 OOS 筛)</span></div>
-  <div class="mini"><b>tested_hashes 不释放</b><br><span style="color:var(--mut)">历史 1.5 万已测 hash 维持去重,不重测(早期组合多为低效结构,翻身价值有限)</span></div>
-  <div class="mini"><b>OOS 一年足够</b><br><span style="color:var(--mut)">2025 单年 holdout 维持现状;不滚动延长(数据源有 2026 后可复议)</span></div>
-</div>
-</div>
 
-<!-- 5 生成层 -->
-<h2 id="gen"><span class="n">5</span>生成层(GLM-5.3,IS 盲)</h2>
-<div class="card">
-<p>s-表达式 DSL:深度≤4,14 算子(时序 ma/std/max/min/roc/delta/skew/rank_ts · 逐元素 add/sub/mul/div · 截面 zscore/rank_cs)。<b>语义</b>:时序算子第二参数=滚动窗口天数(非数值截断);zscore/rank_cs=逐截面。</p>
-<h3>五路预算(M3 动态)</h3>
-<p>近 5 轮入库表现自适应(yielding→利用+,stuck→探索+),基线 0.25/0.25/0.15/0.15/0.20;父母种子=库存因子。</p>
-<h3>机制引导 + 反偏置 + 族记忆</h3>
-<div class="grid g3">
-  <div class="mini"><b>12 机制族</b><br><span style="color:var(--mut)">8 时序+4 截面,每族带原型与经济学假设;coverage 偏向未挖掘族 + MECHANISM_BOOST(overnight 4x 跳空优先)</span></div>
-  <div class="mini"><b>族级「已知缺陷」栏</b><br><span style="color:var(--mut)">终审的结构/经济类拒因持久化到 family_notes.json,注入该族生成 prompt 规避(每族 5 条,2026-08-18)</span></div>
-  <div class="mini"><b>兜底链</b><br><span style="color:var(--mut)">API 错重试 1 次→random_tree;解析失败重试;全部计入健康行</span></div>
-</div>
-</div>
-
-<!-- 6 审查层 -->
-<h2 id="rev"><span class="n">6</span>审查层(回测前,确定性,零 API 成本)</h2>
-<div class="card">
+<h3>数据安全措施</h3>
 <table>
-<tr><th>#</th><th>规则</th><th>动作</th></tr>
-<tr><td>1</td><td>截面嵌套截面</td><td>简化(去外层)</td></tr>
-<tr><td>1b</td><td>add/mul 交换结合规范化(展平+字典序+左倾重建)</td><td>等价结构同一 hash(省重复回测)</td></tr>
-<tr><td>2</td><td>两子树完全相同的 add/sub/mul/div</td><td>拒(退化 2X/0/X²/1)</td></tr>
-<tr><td>3</td><td>add/sub 跨量纲</td><td>拒</td></tr>
-<tr><td>4</td><td>深度 ≤2</td><td>拒</td></tr>
-<tr><td>5</td><td>平滑直嵌平滑 / 极值直嵌极值(仅直接子节点同类)</td><td>拒(研报 §16)</td></tr>
-<tr><td>—</td><td><b>覆盖率防线</b>:任一月覆盖 &lt; 前后各 12 月中位 ×60%(只看 2018 起,warmup 豁免)</td><td>拒 + 永久去重</td></tr>
+<tr><th>措施</th><th>目的</th></tr>
+<tr><td>mv = close × 流通股本(时点,不复权)</td><td>消除前复权带来的未来除权信息</td></tr>
+<tr><td>adj = raw × 累计复权因子(无未来锚)</td><td>复权价格不含数据末尾的除权基准</td></tr>
+<tr><td>算子消毒(±inf → NaN)</td><td>防除零产生的无穷大毒化截面计算</td></tr>
+<tr><td>op_skew 自研实现</td><td>pandas rolling skew 在部分窗口返回NaN(bug)</td></tr>
+<tr><td>覆盖率防线</td><td>月覆盖率骤降 → 回测前拦截</td></tr>
+<tr><td>面板口径版本标记</td><td>数据口径变更时自动重建缓存</td></tr>
 </table>
-</div>
 
-<!-- 7 回测层 -->
-<h2 id="bt"><span class="n">7</span>回测层(alphalab,窗口化)</h2>
-<div class="card">
-<div class="grid g3">
-  <div class="mini"><b>窗口派生 yaml</b><br><span style="color:var(--mut)">alphalab 强制因子宽表覆盖其 sample 每个交易日 → 适配层按窗口自动改写 sample.start/end(缓存复用);IS=默认,OOS=独立实例</span></div>
-  <div class="mini"><b>并发与容错</b><br><span style="color:var(--mut)">3 线程;瞬时异常→下轮重试;ValueError(全NaN/字段缺)→永久去重;坏因子预拦(有限值&lt;1%)</span></div>
-  <div class="mini"><b>解析</b><br><span style="color:var(--mut)">IC/ICIR/逐年多空/NAV/单调性 → FactorMetrics;未解析字段:ic_skew/ic_kurt/换手/IC衰减(待用)</span></div>
-</div>
-</div>
-
-<!-- 8 过滤层 -->
-<h2 id="flt"><span class="n">8</span>过滤层(16 项,全部 IS 口径)</h2>
-<div class="card">
+<h3>结构治理防线</h3>
 <table>
-<tr><th>#</th><th>规则</th><th>阈值/说明</th></tr>
-<tr><td>1</td><td>|IC|</td><td>&gt;0.03</td></tr>
-<tr><td>2</td><td>每年多空(IS 口径 2018-2023 六段全正)</td><td>&gt;0</td></tr>
-<tr><td>3/4</td><td>整体年化 / 夏普</td><td>&gt;0 / &gt;0.5</td></tr>
-<tr><td>5</td><td>末年夏普(IS 末 252 交易日 ≈ 2022H2~2023H1)</td><td>&gt;0.5</td></tr>
-<tr><td>6</td><td>Calmar</td><td>&gt;1.0</td></tr>
-<tr><td>7/8</td><td>近 9/12 月多空(相对 IS 末日)</td><td>&gt;0</td></tr>
-<tr><td>9</td><td>IC 相关 vs 库存</td><td>&lt;0.70;高相关但综合分对每个相关者 ×1.05 更优 → <b>替换全部</b></td></tr>
-<tr><td>10</td><td>FSA 整树骨架</td><td>支持度&gt;15% 冻结;同骨架 ≤5 变体</td></tr>
-<tr><td>11</td><td>失败模式库</td><td>hash 命中即拒</td></tr>
-<tr><td>12/13/14</td><td>多头超额 / 单调性 / ICIR</td><td>&gt;0 / &gt;0.85 / &gt;0.3</td></tr>
-<tr><td>15</td><td>同构子树家族(≥4 节点,库存 ≥2)</td><td>更优 ×1.05 → <b>替换全族</b>,否则拒</td></tr>
-<tr><td>16</td><td>LLM 终审</td><td>见 §9</td></tr>
+<tr><th>防线</th><th>触发条件</th><th>动作</th></tr>
+<tr><td>roc 语义闸</td><td>roc 直接作用于截面算子输出</td><td>拒绝(分母趋零)</td></tr>
+<tr><td>分支支配简化</td><td>顶层两分支尺度比 ≥ 5x</td><td>取支配分支</td></tr>
+<tr><td>同构子树上限</td><td>某子树在库内出现 ≥ 3次</td><td>质量更优则替换,否则拒</td></tr>
+<tr><td>族记忆回流</td><td>LLM终审拒因含结构缺陷</td><td>写入该机制族的「已知缺陷」</td></tr>
 </table>
-<p><b>综合质量分</b>(保优淘劣排序):<code>|IC|/0.03 + ICIR/0.30 + 单调性/0.85 + 多头超额/0.05</code>。库不变量:每族=历史最优 top-2。</p>
+
+<h3>OOS 崩塌跳闸</h3>
+<p>每轮自动检查:如果库内因子OOS中位IC ≤ 0 或负占比 ≥ 50%,系统<b>立即停止</b>并向用户汇报全库衰减明细,等待人工决策。</p>
 </div>
 
-<!-- 9 LLM 终审 -->
-<h2 id="final"><span class="n">9</span>LLM 终审与拒因回流(2026-08-18 升级)</h2>
-<div class="card">
-<pre><code>过 15 项后、入库前(每轮 1-2 个)→ glm-5.3 收到:
-  表达式 + 字段含义 + 算子语义说明 + 【IS 指标摘要 + 逐年多空表】
-硬核对(先算后裁):①最大单年 > 其余年份总和 → 必拒
-                  ②半数年份 |y|&lt;2% → 倾向拒(单年依赖)
-                  ③多头超额&lt;1% 而多空尚可(空头独撑)→ 倾向拒
-裁决 ACCEPT/REJECT + 一句理由
-拒因自动分类:
-  指标类(含 IC/夏普/年化/逐年 等词) → 只进台账
-  结构/经济类(div 分母为零/量纲/滞后…) → add_family_note(族id, 理由)
-      → family_notes.json 持久化 → 该机制族生成 prompt「已知缺陷,务必规避」栏
-防火墙:指标可进选择端(终审诊断);指标数值/指标类结论 永不回流生成端</code></pre>
-<p>实测:单年依赖陷阱(2018 独赚 25%)正确 REJECT 并引用规则;健康因子通过且理由引用逐年分布。</p>
-</div>
-
-<!-- 10 入库与工具 -->
-<h2 id="store"><span class="n">10</span>入库 · 检查点 · 工具 · 监控</h2>
-<div class="card">
-<h3>checkpoint.json(原子落盘)</h3>
-<p><code>iteration / tested_hashes(1.5万) / stored_factors(expr+hash+骨架+IS指标+IS ic_series+oos_metrics) / perturb_state / fsa_state / history(近20轮)</code></p>
-<h3>工具箱</h3>
-<table>
-<tr><th>工具</th><th>用途</th></tr>
-<tr><td><code>lib_status.py</code>(hook 每轮)</td><td>Top5 + <b>两两相关体检(≥0.7 亮出)</b> + <b>IS→OOS 衰减表</b></td></tr>
-<tr><td><code>health_check.py [--no-llm]</code></td><td>全库体检:结构/覆盖/家族/相关/IS阈值/带指标终审</td></tr>
-<tr><td><code>clean_library.py [--apply]</code></td><td>结构清洗(dry-run 默认;备份+台账)</td></tr>
-<tr><td><code>export_factors.py</code></td><td>导出全窗口 parquet+manifest,自动清残留</td></tr>
-<tr><td><code>smoke_keys.py</code></td><td>LLM 连通性(生成/审查端各 1 条)</td></tr>
-</table>
-<h3>每轮监控行(loop.log)</h3>
-<pre><code>BUDGET / 轮次漏斗 / REJECT分类(18类) / LLM: 生成 ok../解析失败../API错../兜底.. | 终审 ok../错..
-STATUS / SIGNALS(stuck_rounds、top_abs_ic) / 相关性体检(hook)</code></pre>
-<p>诊断边界:stuck≥8 停机报告;回测异常持续≥10 查 rqdatac/降并发;存量相关漂移每轮体检;高风险动作先问用户。</p>
-</div>
-
-<!-- 11 调度 -->
-<h2 id="loop"><span class="n">11</span>Loop 调度与备份</h2>
-<div class="card">
-<div class="loopband">每天(含周末)<b>9:00-12:00、14:00-18:00 暂停</b>,午休/夜间照常;脚本级兜底 + <kbd>--force</kbd> 显式越过;暂停期 <b>durable 一次性唤醒</b>(12:02/18:02)续链。夜间(≥21:00)首轮自动 <b>git commit + push</b>(github.com/bs763/loop_engine,凭据在 Windows 凭据管理器)。</div>
-<p>LLM:智谱 Coding Plan 走 Anthropic 兼容端点(<code>AnthropicMessagesProvider</code>,超时 120s、max_tokens 4096);DeepSeek 配置备用。</p>
-</div>
-
-<!-- 12 使用 -->
-<h2 id="use"><span class="n">12</span>使用手册</h2>
-<div class="card">
-<pre><code>uv run code/run_round_cli.py --n 100        # 一轮(IS 准入 + OOS 存档,全自动)
-uv run code/run_round_cli.py --mock         # 离线演练
-uv run code/run_round_cli.py --n 100 --force  # 越过高峰暂停(手动指定)
-uv run code/lib_status.py                   # 库存+相关体检+IS→OOS 衰减
-uv run code/health_check.py                 # 全库体检(--no-llm 跳过终审)
-uv run code/clean_library.py                # 结构清洗(dry-run / --apply)
-uv run code/export_factors.py               # 导出 parquet+manifest
-uv run pytest code/tests -q                 # 161 测试</code></pre>
-<p><code>.env</code>:GLM_API_KEY / GLM_MODEL=glm-5.3 / GENERATION_PROVIDER=glm / REVIEW_PROVIDER=glm / ALPHALAB_DIR。</p>
-</div>
-
-<!-- 13 变更记录 -->
-<h2 id="chg"><span class="n">13</span>变更记录</h2>
-<div class="card">
-<h3>2026-08-18</h3>
-<table>
-<tr><th>变更</th><th>说明</th></tr>
-<tr><td>LLM 终审升级</td><td>携带 IS 指标与逐年表,硬核对单年依赖/近零年份/空头独撑(实测陷阱案正确拒);<b>拒因安全回流</b>:结构/经济类 → 机制族「已知缺陷」记忆(family_notes.json,每族5条)注入生成 prompt;指标类只进台账——防 Goodhart 变体</td></tr>
-<tr><td>add/mul 规范化</td><td>交换结合展平+字典序,等价结构同一 hash</td></tr>
-</table>
-<h3>2026-08-17(全天 14 项)</h3>
-<table>
-<tr><th>变更</th><th>说明</th></tr>
-<tr><td>glm-5.3 双端切换</td><td>Anthropic 端点/Coding Plan,零充值</td></tr>
-<tr><td>三道新闸</td><td>审查过滤5(过度平滑/极值嵌套)、过滤15(同构家族保优淘劣)、过滤16(LLM 终审接线)</td></tr>
-<tr><td>库清洗 34→16</td><td>9 结构违规+9 家族裁剪;腾出的生态位当日被新结构填补</td></tr>
-<tr><td>op_roc ±inf 消毒</td><td>用户发现因子 2019 覆盖塌陷 → 三层根因(数据零值→roc 除零→zscore 毒化→min_periods 放大 2 日为 40 日)</td></tr>
-<tr><td>op_skew 自研</td><td>pandas rolling skew 幽灵 NaN(53 万格)→ 滚动矩实现,覆盖 54%→78.9%,271/271 对拍一致</td></tr>
-<tr><td>算子审计+三层消毒</td><td>叶子/roc/zscore;覆盖率防线(月覆盖&lt;本地中位×60%)</td></tr>
-<tr><td>复检移除 0007</td><td>修复后与库内第一名相关 0.78,依规则移除</td></tr>
-<tr><td>相关性体检固化</td><td>lib_status 每轮两两检查(#9 是入库门槛非持有门槛)</td></tr>
-<tr><td><b>IS/OOS 切分上线</b></td><td>IS 2018-01~2023-06 / 隔离带 18 月 / OOS 2025;适配层窗口派生 yaml;存量按 IS 重准入 <b>15→11</b>;OOS 存档+衰减表</td></tr>
-<tr><td>重准入事故与修复</td><td>alphalab sample 强制全窗口导致 IS parquet 全拒→脚本误清空库;修复:窗口派生 yaml + 「基础设施错误绝不触发移除」铁律 + manifest 兜底恢复;git 大操作前必 commit</td></tr>
-<tr><td>git + GitHub</td><td>版本管理落地,每日自动异地备份</td></tr>
-</table>
-<p style="color:var(--mut)">更早:2026-08-16 保优淘劣修复+全库去重 · 08-15 字段反偏置 · 08-12~14 alphalab 接通、14 项过滤定型。详见 lessons.md(14 条)。</p>
-</div>
-
-<!-- 14 参数 -->
-<h2 id="param"><span class="n">14</span>附录 · 核心参数(engine/config.py)</h2>
-<div class="card">
-<table>
-<tr><th>参数</th><th>值</th><th>说明</th></tr>
-<tr><td>IS_START / IS_END</td><td>2018-01-01 / 2023-06-30</td><td>样本内(全部筛选)</td></tr>
-<tr><td>GAP_START / GAP_END</td><td>2023-07-01 / 2024-12-31</td><td>隔离带 18 个月(≥310 交易日最深窗口链)</td></tr>
-<tr><td>OOS_START / OOS_END</td><td>2025-01-01 / 2025-12-31</td><td>样本外(只存档报告)</td></tr>
-<tr><td>BACKTEST_YEARS</td><td>(2018, 2023)</td><td>逐年过滤 IS 口径</td></tr>
-<tr><td>IC_GATE / ICIR_MIN / IC_CORR_MAX</td><td>0.03 / 0.30 / 0.70</td><td>研报 §9</td></tr>
-<tr><td>SHARPE_MIN / CALMAR_MIN / MONOTONICITY_MIN / LONG_EXCESS_MIN</td><td>0.5 / 1.0 / 0.85 / 0.0</td><td>研报+用户加严</td></tr>
-<tr><td>FAMILY_SUBTREE_CAP / MIN_NODES</td><td>2 / 4</td><td>过滤15</td></tr>
-<tr><td>COVERAGE_LOCAL_RATIO_MIN</td><td>0.6</td><td>覆盖率防线</td></tr>
-<tr><td>FSA_SUPPORT / MIN_COUNT / VARIANT_CAP</td><td>0.15 / 2 / 5</td><td>研报 M8</td></tr>
-<tr><td>MAX_DEPTH / WINDOW_SET / COMPUTE_START_YEAR</td><td>4 / 5~250 规整集 / 2015</td><td>warmup 设计</td></tr>
-<tr><td>GLM_TIMEOUT / GLM_MAX_TOKENS</td><td>120s / 4096</td><td>.env 可调</td></tr>
-</table>
-</div>
-
-<div class="footer">factor_loop_engine · 2026-08-18 全量重写 · git 同步至 github.com/bs763/loop_engine · 运行态见 output/loop.log 与 lessons.md(14 条)</div>
+<div class="footer">factor_loop_engine · 2026-08-19 重写 · github.com/bs763/loop_engine</div>
 </div>
 </body>
 </html>
