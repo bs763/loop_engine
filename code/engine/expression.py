@@ -218,23 +218,31 @@ _KIND_WEIGHTS = {"ts": 0.5, "elem": 0.3, "cs": 0.2}
 
 def random_tree(fields: list[str], max_depth: int = MAX_DEPTH,
                 rng: np.random.Generator | None = None, _depth: int = 0,
-                field_weights: np.ndarray | None = None) -> Node:
-    """随机生成表达式树(算子层数 ≤ max_depth)。
+                field_weights: np.ndarray | None = None,
+                min_depth: int | None = None) -> Node:
+    """随机生成表达式树(min_depth ≤ 算子层数 ≤ max_depth)。
 
     越深越倾向叶子,保证有界;冷启动保证初始广度。
     field_weights 给字段非均匀权重(长度=len(fields),需归一化),用于把生成偏向某些字段(如跳空)。
+    min_depth 默认取 config.REVIEW_MIN_DEPTH(用户 2026-08-24:与其让单层树生成后被审查
+    确定性拒绝、进失败模式库占位,不如源头不生成——生成端与审查阈值同源,放宽自动跟随)。
     """
     rng = rng if rng is not None else _RNG
+    if min_depth is None:
+        from engine.config import REVIEW_MIN_DEPTH
+        min_depth = REVIEW_MIN_DEPTH
+    min_depth = min(min_depth, max_depth)
 
     def _leaf() -> Node:
         if field_weights is None:
             return Node.leaf(str(rng.choice(fields)))
         return Node.leaf(str(fields[int(rng.choice(len(fields), p=field_weights))]))
 
-    # 越深越倾向取叶子:_depth<1 必取算子(保证至少 1 层);临近 max_depth 提高叶子概率
+    # 越深越倾向取叶子:_depth<min_depth 必取算子(保证至少 min_depth 层);
+    # 临近 max_depth 提高叶子概率
     if _depth >= max_depth:
         return _leaf()
-    leaf_prob = 0.0 if _depth < 1 else (0.1 if _depth < max_depth - 1 else 0.5)
+    leaf_prob = 0.0 if _depth < min_depth else (0.1 if _depth < max_depth - 1 else 0.5)
     if rng.random() < leaf_prob:
         return _leaf()
 

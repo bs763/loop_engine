@@ -196,7 +196,8 @@ def build_generation_prompt(mech: dict, fields: list[str]) -> str:
 {_grammar()}
 【可用字段】: {', '.join(fields)}
 【硬规则】
-- s-表达式嵌套,最大深度 4 层;
+- s-表达式嵌套,深度至少 2 层、最多 4 层:顶层算子的子节点必须是算子而非裸字段
+  (zscore(ma(x,20)) 合法;max(x,20)、add(x,y) 这类单层非法);
 - add/sub 不得跨量纲(禁止 add(close, volume) 这类);只用上面字段;
 - 时序算子必须带第二参数窗口 n,禁止省略(如 rank_ts(x) 非法,应为 rank_ts(x, 20)),
   且各算子窗口范围不同:ma 3-250,std/max/min/rank_ts 5-120,roc/delta 3-60,skew 10-120;
