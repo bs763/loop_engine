@@ -40,6 +40,12 @@ SHARES = f"s3://{BUCKET}/stock/shares/year=*/data.parquet"             # 每日�
 IS_ST = f"s3://{BUCKET}/stock/is_st/year=*/data.parquet"              # ST 标记(BOOLEAN)
 IS_SUSPENDED = f"s3://{BUCKET}/stock/is_suspended/year=*/data.parquet"  # 停牌标记(BOOLEAN)
 
+# ---- 基本面(2026-08-24 接入;文档速查表漏记,已实探验证)----
+# 两表均为日频、按公告时点 PIT 对齐(实测:ROE 每股每年仅 ~5 个 distinct 值,
+# 跳变精确集中在 4/8/10 月披露季,3 月为快报窗口——阶梯干净无未来函数嫌疑)
+FIN_INDICATORS = f"s3://{BUCKET}/stock/fin_indicators/year=*/data.parquet"  # ROE/ROA/净利增速
+VALUATION = f"s3://{BUCKET}/stock/valuation/year=*/data.parquet"            # BM/PS/PE/股息率/市值等
+
 # ---- 标的 / 日历 / 指数(后续过滤/分池用)----
 INSTRUMENTS = f"s3://{BUCKET}/stock/instruments/data.parquet"          # 标的清单
 FACTOR_EXPO_V2 = f"s3://{BUCKET}/stock/factor_exposure_v2/year=*/data.parquet"  # Barra CNE5 因子暴露

@@ -33,7 +33,10 @@ from paths import CACHE_DIR, OUTPUT_DIR, PROJECT_ROOT
 
 # 引擎可用字段(均有 FIELD_DIM 量纲,供 review 跨量纲过滤)
 FIELDS = ["adj_close", "adj_high", "adj_low", "overnight", "intraday", "amplitude",
-          "up_shadow", "down_shadow", "hl_ratio", "ret", "log_volume", "log_amount", "log_mv"]
+          "up_shadow", "down_shadow", "hl_ratio", "ret", "log_volume", "log_amount", "log_mv",
+          # 基本面首批 6 字段(2026-08-24,用户拍板:突破单一价量源的相关性天花板;
+          # 日频 PIT 对齐,loader FUNDAMENTAL_COLS 改名而来;故意不含 PE/PEG——负值 rank 语义反转)
+          "roe", "roa", "profit_growth", "bm", "div_yield", "ps"]
 PANELS_CACHE = CACHE_DIR / "panels"
 DEFAULT_CHECKPOINT = OUTPUT_DIR / "checkpoint.json"
 DEFAULT_ALPHALAB_CONFIG = PROJECT_ROOT / "config" / "alphalab.yaml"   # 项目专用副本(h5-only、无 barra)
@@ -48,7 +51,7 @@ def _synth_panels() -> dict[str, pd.DataFrame]:
             for f in FIELDS}
 
 
-PANELS_VERSION = "mv=close×fc + adj=raw×f_t(PIT) 2026-08-18"   # 口径版本:变更时缓存自动失效重建
+PANELS_VERSION = "mv=close×fc + adj=raw×f_t(PIT) 2026-08-18 + fundamental6 2026-08-24"   # 口径版本:变更时缓存自动失效重建
 
 
 def _real_panels() -> dict[str, pd.DataFrame]:

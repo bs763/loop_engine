@@ -212,6 +212,10 @@ FIELD_DIM: dict[str, str] = {
     "amplitude": DIM_DIMLESS, "up_shadow": DIM_DIMLESS, "down_shadow": DIM_DIMLESS,
     "hl_ratio": DIM_DIMLESS,
     "log_volume": DIM_LOGVOL, "log_amount": DIM_LOGAMT, "log_mv": DIM_LOGMV,
+    # 基本面 6 字段(2026-08-24):全为比率/收益率型 → dimless,可与 rank 类组合;
+    # 财务指标为公告时点阶梯(季更),时序算子语义如 roc(roe,60)=盈利能力改善动量
+    "roe": DIM_DIMLESS, "roa": DIM_DIMLESS, "profit_growth": DIM_DIMLESS,
+    "bm": DIM_DIMLESS, "div_yield": DIM_DIMLESS, "ps": DIM_DIMLESS,
 }
 
 

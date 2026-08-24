@@ -36,6 +36,8 @@ _C_SHARES = CACHE_DIR / "shares"
 _C_ST = CACHE_DIR / "is_st"
 _C_SUSP = CACHE_DIR / "is_suspended"
 _C_EXF = CACHE_DIR / "ex_factor.parquet"
+_C_FININD = CACHE_DIR / "fin_indicators"
+_C_VALU = CACHE_DIR / "valuation"
 
 # (kind → (OSS glob, 本地目录))
 _TABLE_MAP = {
@@ -43,6 +45,20 @@ _TABLE_MAP = {
     "shares": (oss.SHARES, _C_SHARES),
     "is_st": (oss.IS_ST, _C_ST),
     "is_suspended": (oss.IS_SUSPENDED, _C_SUSP),
+    "fin_indicators": (oss.FIN_INDICATORS, _C_FININD),
+    "valuation": (oss.VALUATION, _C_VALU),
+}
+
+# 基本面字段选取与改名(2026-08-24 首批 6 个,全为比率型=dimless):
+#   故意不取 PE/PEG——亏损股 PE 为负,负值在截面 rank 中语义反转(巨亏排成"最便宜"),
+#   BM/PS/股息率分母恒正干净;盈利收益率留待二期从 income 表按 PE>0 条件自算。
+FUNDAMENTAL_COLS = {
+    "return_on_equity_ttm": "roe",
+    "return_on_asset_ttm": "roa",
+    "net_profit_parent_company_growth_ratio_ttm": "profit_growth",
+    "book_to_market_ratio_lf": "bm",
+    "dividend_yield_ttm": "div_yield",
+    "ps_ratio_ttm": "ps",
 }
 
 
@@ -83,7 +99,8 @@ def build_factor_table(start_year: int, end_year: int, *, use_cache: bool = True
     """加载 + 前复权 + 对齐 → base 表(尚未算派生字段)。
 
     返回列:order_book_id, date, open/high/low/close(原始), prev_close, volume, amount,
-            free_circulation, cum_at_t, adj_open/high/low/close, mv, is_st, is_suspended。
+            free_circulation, cum_at_t, adj_open/high/low/close, mv, is_st, is_suspended,
+            + 基本面 6 字段(roe/roa/profit_growth/bm/div_yield/ps,2026-08-24,见 FUNDAMENTAL_COLS)。
     """
     if end_year < start_year:
         raise ValueError(f"end_year({end_year}) < start_year({start_year})")
@@ -96,7 +113,18 @@ def build_factor_table(start_year: int, end_year: int, *, use_cache: bool = True
         sh_files = [_ensure_year_cache(con, "shares", y, use_cache=use_cache) for y in years]
         st_files = [_ensure_year_cache(con, "is_st", y, use_cache=use_cache) for y in years]
         su_files = [_ensure_year_cache(con, "is_suspended", y, use_cache=use_cache) for y in years]
+        fi_files = [_ensure_year_cache(con, "fin_indicators", y, use_cache=use_cache) for y in years]
+        va_files = [_ensure_year_cache(con, "valuation", y, use_cache=use_cache) for y in years]
         exf_file = _ensure_ex_factor_cache(con, use_cache=use_cache)
+
+        # 基本段列清单(原名 AS 改名)拼进 SELECT
+        fi_map = {k: v for k, v in FUNDAMENTAL_COLS.items()
+                  if k in ("return_on_equity_ttm", "return_on_asset_ttm",
+                           "net_profit_parent_company_growth_ratio_ttm")}
+        va_map = {k: v for k, v in FUNDAMENTAL_COLS.items()
+                  if k in ("book_to_market_ratio_lf", "dividend_yield_ttm", "ps_ratio_ttm")}
+        fi_sel = ", ".join(f"fi.{k} AS {v}" for k, v in fi_map.items())
+        va_sel = ", ".join(f"va.{k} AS {v}" for k, v in va_map.items())
 
         query = f"""
         WITH db AS (
@@ -118,6 +146,14 @@ def build_factor_table(start_year: int, end_year: int, *, use_cache: bool = True
         su AS (
           SELECT order_book_id, date, is_suspended
           FROM read_parquet({_sql_list(su_files)})
+        ),
+        fi AS (
+          SELECT order_book_id, date, {", ".join(fi_map)}
+          FROM read_parquet({_sql_list(fi_files)})
+        ),
+        va AS (
+          SELECT order_book_id, date, {", ".join(va_map)}
+          FROM read_parquet({_sql_list(va_files)})
         )
         SELECT
           db.order_book_id, db.date,
@@ -131,13 +167,17 @@ def build_factor_table(start_year: int, end_year: int, *, use_cache: bool = True
           db.close * COALESCE(exf.ex_cum_factor, 1.0) AS adj_close,
           db.close * sh.free_circulation             AS mv,
           COALESCE(st.is_st, false)       AS is_st,
-          COALESCE(su.is_suspended, false) AS is_suspended
+          COALESCE(su.is_suspended, false) AS is_suspended,
+          {fi_sel},
+          {va_sel}
         FROM db
         ASOF LEFT JOIN exf
           ON db.order_book_id = exf.order_book_id AND db.date >= exf.ex_date
         LEFT JOIN sh ON db.order_book_id = sh.order_book_id AND db.date = sh.date
         LEFT JOIN st ON db.order_book_id = st.order_book_id AND db.date = st.date
         LEFT JOIN su ON db.order_book_id = su.order_book_id AND db.date = su.date
+        LEFT JOIN fi ON db.order_book_id = fi.order_book_id AND db.date = fi.date
+        LEFT JOIN va ON db.order_book_id = va.order_book_id AND db.date = va.date
         """
         df = con.execute(query).fetchdf()
     finally:

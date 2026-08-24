@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""12 机制族(M5)+ 机制引导生成 / 审查精判 prompt 与解析。
+"""15 机制族(M5:图表7原12族 + 2026-08-24 基本面3族)+ 机制引导生成 / 审查精判 prompt 与解析。
 
 机制引导 = 统计因子库【未覆盖】的族 → 优先从该族选原型 → 生成自然语言假设 → 转表达式。
 审查精判(M6)= 抽样检查表达式边界条件是否合理,LLM 给 ACCEPT/REJECT。
@@ -78,7 +78,7 @@ def _register_family(expr_hash: str, mech_id: str, cap: int = 4000) -> None:
 register_family = _register_family
 
 # ============================================================================
-# 12 机制族(时序 8 + 截面 4)——以图表 7 为准(见模块 docstring)
+# 机制族:图表 7 的 12 族(时序 8 + 截面 4)+ 基本面 3 族(2026-08-24,见列表尾部)
 # ============================================================================
 MECHANISMS: list[dict] = [
     # ---- 时序类(8)----
@@ -131,12 +131,31 @@ MECHANISMS: list[dict] = [
      "prototypes": ["收益分化扩张", "波动分化加剧", "市场一致性上升"],
      "hint": "截面上收益/波动的分化程度或市场一致性变化。",
      "field_hints": ["ret", "amplitude"]},
+    # ---- 基本面 3 族(2026-08-24 用户拍板接入;首批 6 个 PIT 日频字段)----
+    {"id": "cs_value", "category": "cs", "name": "价值与估值修复",
+     "prototypes": ["低估值溢价", "估值压缩后的修复动量", "估值与质量背离"],
+     "hint": "便宜的好公司:BM/PS 低估溢价、估值分位的修复动量、估值与盈利能力的背离"
+             "(质量调整价值——便宜且赚钱的比单纯便宜的可靠)。",
+     "field_hints": ["bm", "ps", "div_yield"]},
+    {"id": "cs_quality", "category": "cs", "name": "质量溢价与盈利改善",
+     "prototypes": ["高盈利能力溢价", "盈利能力改善动量", "盈利与估值错配"],
+     "hint": "ROE/ROA 高且在改善的公司长期跑赢;注意盈利能力的变化(roc/ma 作用于季更阶梯"
+             "即改善动量)与盈利-估值错配(高质量但未被定价)。",
+     "field_hints": ["roe", "roa"]},
+    {"id": "cs_growth", "category": "cs", "name": "基本面成长",
+     "prototypes": ["成长溢价", "成长加速度", "成长与估值匹配"],
+     "hint": "净利润增速的水平与变化(增速的二阶=加速度);警惕高估值成长陷阱"
+             "(growth 高但 bm/ps 显示已被市场充分定价)。",
+     "field_hints": ["profit_growth", "bm", "ps"]},
 ]
 
 FIELD_MEANINGS = ("open/high/low/close=价, volume=成交量, amount=成交额, "
                   "overnight=隔夜收益, intraday=日内收益, amplitude=振幅, "
                   "up_shadow/down_shadow=影线占比, hl_ratio=收盘区间位, ret=收益, "
-                  "log_volume/log_amount/log_mv=对数规模")
+                  "log_volume/log_amount/log_mv=对数规模, "
+                  "roe=净资产收益率(季更阶梯,公告时点), roa=总资产收益率, "
+                  "profit_growth=净利润同比增速, bm=账面市值比(价值), "
+                  "div_yield=股息率, ps=市销率(反向=便宜)")
 
 # 机制族 boost:把 LLM 生成额外拉向「隔夜跳空」等未充分挖掘机制族(权重乘数)
 # 2026-08-18 干旱期拓宽:加 boost 给全部未覆盖/低覆盖族,让探索打到新信号源
@@ -149,6 +168,10 @@ MECHANISM_BOOST: dict[str, float] = {
     "ts_reversal": 2.0,         # 反转与均值回归(ret/overnight/hl_ratio)
     "cs_flow_price": 2.0,       # 截面量价关系(log_volume/log_amount/adj_close)
     "cs_size_liquidity": 1.5,   # 截面规模流动性(log_mv/log_amount)
+    # 基本面 3 族(2026-08-24 新信号源,最高优先拉取——突破单一价量源的相关性天花板)
+    "cs_value": 4.0,            # 价值与估值修复(bm/ps/div_yield)
+    "cs_quality": 4.0,          # 质量溢价与盈利改善(roe/roa)
+    "cs_growth": 4.0,           # 基本面成长(profit_growth)
 }
 
 

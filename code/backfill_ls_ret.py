@@ -26,7 +26,8 @@ from paths import CACHE_DIR, OUTPUT_DIR, PROJECT_ROOT
 
 PANELS_CACHE = CACHE_DIR / "panels"
 FIELDS = ["adj_close", "adj_high", "adj_low", "overnight", "intraday", "amplitude",
-          "up_shadow", "down_shadow", "hl_ratio", "ret", "log_volume", "log_amount", "log_mv"]
+          "up_shadow", "down_shadow", "hl_ratio", "ret", "log_volume", "log_amount", "log_mv",
+          "roe", "roa", "profit_growth", "bm", "div_yield", "ps"]
 
 
 def main() -> None:

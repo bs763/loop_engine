@@ -49,16 +49,16 @@ def test_generate_registers_family():
 # ---------------- 13 机制族数据 ----------------
 
 def test_mechanisms_count_and_categories():
-    # 图表 7:12 族 = 8 时序 + 4 截面(研报正文"13"为出入,以图表 7 为准)
-    assert len(M.MECHANISMS) == 12
+    # 图表 7:12 族 = 8 时序 + 4 截面;2026-08-24 基本面接入 +3 截面族(cs_value/quality/growth)
+    assert len(M.MECHANISMS) == 15
     ts = [m for m in M.MECHANISMS if m["category"] == "ts"]
     cs = [m for m in M.MECHANISMS if m["category"] == "cs"]
-    assert len(ts) == 8 and len(cs) == 4
+    assert len(ts) == 8 and len(cs) == 7
 
 
 def test_mechanisms_well_formed():
     ids = [m["id"] for m in M.MECHANISMS]
-    assert len(set(ids)) == 12  # id 唯一
+    assert len(set(ids)) == 15  # id 唯一
     for m in M.MECHANISMS:
         assert {"id", "category", "name", "prototypes", "hint", "field_hints"} <= set(m)
         assert len(m["prototypes"]) >= 1
