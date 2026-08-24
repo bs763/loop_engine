@@ -237,8 +237,10 @@ IC={g('ic_mean'):+.4f} ICIR={g('icir'):.2f} 夏普={g('ls_sharpe'):.2f} Calmar={
 
 【表达式】{node.to_str()}
 【字段含义】{FIELD_MEANINGS}
-【算子语义】时序算子(ma/std/max/min/roc/delta/skew/rank_ts)的第二参数是**滚动窗口天数**,
-如 max(x, 40) = x 的 40 日滚动最大值——**不是数值截断**;zscore/rank_cs 为逐截面(跨股票)算子。{mblock}
+【算子语义】时序算子(ma/std/max/min/roc/delta/skew/rank_ts)的第二参数一律是**滚动窗口天数**,
+不是数值截断:max(x, 40) = x 的 40 日滚动最大值;min(log_volume, 20) = 对数成交量的
+20 日滚动最小值(**不是**把值截断为 20);roc(x, n) = x 的 n 日变化率。
+zscore/rank_cs 为逐截面(跨股票)算子。{mblock}
 
 请检查:① 边界条件(除零、极端窗口、量纲错配);② 经济学含义是否自洽;
 ③ 过度平滑(仅限两种确定性口径,其它一律不算违规):平滑算子的**直接子节点**也是平滑算子

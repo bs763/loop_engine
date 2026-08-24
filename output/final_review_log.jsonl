@@ -1,0 +1,1 @@
+{"iter": 517, "expr": "std(mul(min(log_volume, 20), rank_cs(zscore(log_volume))), 80)", "accept": false, "raw": "REJECT: min(log_volume, 20) 将对数成交量截断为固定数值 20，破坏了数据的连续性与经济学含义，且与算子语义中“min 为滚动窗口最小值”的定义冲突。"}
