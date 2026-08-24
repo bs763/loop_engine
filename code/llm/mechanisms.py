@@ -172,7 +172,9 @@ def build_generation_prompt(mech: dict, fields: list[str]) -> str:
 【可用字段】: {', '.join(fields)}
 【硬规则】
 - s-表达式嵌套,最大深度 4 层;
-- add/sub 不得跨量纲(禁止 add(close, volume) 这类);只用上面字段;窗口为正整数。
+- add/sub 不得跨量纲(禁止 add(close, volume) 这类);只用上面字段;
+- 时序算子(ma/std/max/min/roc/delta/skew/rank_ts)必须带第二参数窗口 n,且 5≤n≤120,
+  禁止省略(如 rank_ts(x) 非法,应为 rank_ts(x, 20));
 【目标机制】{mech['name']}: {', '.join(mech['prototypes'])}
 【经济学假设】{mech['hint']}{avoid}
 
