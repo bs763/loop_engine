@@ -51,7 +51,7 @@ def _synth_panels() -> dict[str, pd.DataFrame]:
             for f in FIELDS}
 
 
-PANELS_VERSION = "mv=close×fc + adj=raw×f_t(PIT) 2026-08-18 + fundamental6 2026-08-24"   # 口径版本:变更时缓存自动失效重建
+PANELS_VERSION = "mv=close×fc + adj=raw×f_t(PIT) 2026-08-18 + fundamental6+ps-guard 2026-08-24"   # 口径版本:变更时缓存自动失效重建
 
 
 def _real_panels() -> dict[str, pd.DataFrame]:

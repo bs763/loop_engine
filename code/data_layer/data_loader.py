@@ -68,15 +68,20 @@ def _sql_list(paths: list[Path]) -> str:
 
 
 def _ensure_year_cache(con: duckdb.DuckDBPyConnection, kind: str, year: int,
-                       *, use_cache: bool = True) -> Path:
-    """确保某年某表的本地缓存 parquet 存在,返回其路径;不存在(或 use_cache=False)则从 OSS 拉。"""
+                       *, use_cache: bool = True, cols: list[str] | None = None) -> Path:
+    """确保某年某表的本地缓存 parquet 存在,返回其路径;不存在(或 use_cache=False)则从 OSS 拉。
+
+    cols:列裁剪(2026-08-24)——valuation 全表 1.5GB 而我们只用 3 列,拉取时只落所需列
+    (含 order_book_id/date);宽表全列缓存的教训:磁盘 40x 冗余。
+    """
     src_glob, dst_dir = _TABLE_MAP[kind]
     dst = dst_dir / f"year_{year}.parquet"
     if dst.exists() and use_cache:
         return dst
     dst.parent.mkdir(parents=True, exist_ok=True)
+    sel = ", ".join(cols) if cols else "*"
     con.execute(
-        f"COPY (SELECT * FROM read_parquet('{src_glob}', hive_partitioning=1) WHERE year={year}) "
+        f"COPY (SELECT {sel} FROM read_parquet('{src_glob}', hive_partitioning=1) WHERE year={year}) "
         f"TO '{dst.as_posix()}' (FORMAT PARQUET)"
     )
     return dst
@@ -113,18 +118,34 @@ def build_factor_table(start_year: int, end_year: int, *, use_cache: bool = True
         sh_files = [_ensure_year_cache(con, "shares", y, use_cache=use_cache) for y in years]
         st_files = [_ensure_year_cache(con, "is_st", y, use_cache=use_cache) for y in years]
         su_files = [_ensure_year_cache(con, "is_suspended", y, use_cache=use_cache) for y in years]
-        fi_files = [_ensure_year_cache(con, "fin_indicators", y, use_cache=use_cache) for y in years]
-        va_files = [_ensure_year_cache(con, "valuation", y, use_cache=use_cache) for y in years]
+        # 基本面两表列裁剪缓存(只落 join 键 + 所需列)
+        fi_cols = ["order_book_id", "date"] + [k for k in FUNDAMENTAL_COLS
+                                               if k in ("return_on_equity_ttm", "return_on_asset_ttm",
+                                                        "net_profit_parent_company_growth_ratio_ttm")]
+        va_cols = ["order_book_id", "date"] + [k for k in FUNDAMENTAL_COLS
+                                               if k in ("book_to_market_ratio_lf", "dividend_yield_ttm",
+                                                        "ps_ratio_ttm")]
+        fi_files = [_ensure_year_cache(con, "fin_indicators", y, use_cache=use_cache, cols=fi_cols)
+                    for y in years]
+        va_files = [_ensure_year_cache(con, "valuation", y, use_cache=use_cache, cols=va_cols)
+                    for y in years]
         exf_file = _ensure_ex_factor_cache(con, use_cache=use_cache)
 
-        # 基本段列清单(原名 AS 改名)拼进 SELECT
+        # 基本段列清单(原名 AS 改名)拼进 SELECT。
+        # 护栏(2026-08-24 实测发现):ps 存在 inf(营收近零的壳公司)且负营收的负 PS 与负 PE
+        # 同一语义反转陷阱 → ps 仅保留 >0 且有限;其余只挡 inf/NaN(roe/roa/growth 的负值
+        # 语义正确——亏损就是差,保留)。
         fi_map = {k: v for k, v in FUNDAMENTAL_COLS.items()
                   if k in ("return_on_equity_ttm", "return_on_asset_ttm",
                            "net_profit_parent_company_growth_ratio_ttm")}
         va_map = {k: v for k, v in FUNDAMENTAL_COLS.items()
                   if k in ("book_to_market_ratio_lf", "dividend_yield_ttm", "ps_ratio_ttm")}
-        fi_sel = ", ".join(f"fi.{k} AS {v}" for k, v in fi_map.items())
-        va_sel = ", ".join(f"va.{k} AS {v}" for k, v in va_map.items())
+        fi_sel = ", ".join(
+            f"CASE WHEN isfinite(fi.{k}) THEN fi.{k} END AS {v}" for k, v in fi_map.items())
+        va_sel = ", ".join(
+            (f"CASE WHEN isfinite(va.{k}) THEN va.{k} END AS {v}" if v != "ps"
+             else f"CASE WHEN isfinite(va.{k}) AND va.{k} > 0 THEN va.{k} END AS ps")
+            for k, v in va_map.items())
 
         query = f"""
         WITH db AS (
