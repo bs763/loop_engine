@@ -291,13 +291,20 @@ def extract_expression(text: str | None, allowed_fields: list[str] | None = None
 
 
 def parse_verdict(text: str | None) -> tuple[bool, str]:
-    """解析审查裁决 → (accept, reason)。无法解析→默认放行(True)。"""
+    """解析审查裁决 → (accept, reason)。无法解析→默认放行(True,fail-open:审查不可用不崩轮)。
+
+    判定按**首个出现**的关键词(2026-08-24 修正:原 ACCEPT 优先会把「若X则ACCEPT否则REJECT」
+    这类条件句误判成放行);prompt 要求行首输出关键词,行首匹配优先,全文兜底。
+    """
     t = (text or "").strip()
-    upper = t.upper()
-    if re.search(r"\bACCEPT\b", upper):
+    if not t:
         return True, t
-    if re.search(r"\bREJECT\b", upper):
-        return False, t
+    m = re.search(r"^\s*(ACCEPT|REJECT)\b", t, re.I)
+    if m:
+        return m.group(1).upper() == "ACCEPT", t
+    first = re.search(r"\b(ACCEPT|REJECT)\b", t, re.I)
+    if first:
+        return first.group(1).upper() == "ACCEPT", t
     return True, t
 
 

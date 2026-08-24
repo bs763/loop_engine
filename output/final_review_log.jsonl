@@ -1,0 +1,138 @@
+{"iter": 1, "expr": "rank_cs(skew(amplitude, 60))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "rank_cs(add(rank_cs(skew(adj_close, 80)), rank_ts(log_volume, 10)))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "std(rank_cs(std(amplitude, 5)), 20)", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "rank_cs(max(skew(zscore(overnight), 40), 80))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "roc(rank_ts(max(overnight, 5), 120), 20)", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "zscore(rank_ts(delta(amplitude, 5), 5))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "zscore(div(roc(overnight, 40), zscore(amplitude)))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "std(zscore(max(overnight, 40)), 20)", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "zscore(max(rank_ts(log_volume, 80), 60))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "min(rank_ts(zscore(rank_ts(overnight, 40)), 40), 120)", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "div(delta(sub(roc(adj_close, 20), ret), 5), div(rank_cs(overnight), ma(log_volume, 250)))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "delta(sub(zscore(log_volume), ret), 60)", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "zscore(rank_cs(roc(ret, 20)))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "sub(rank_ts(skew(overnight, 20), 10), roc(max(zscore(adj_close), 80), 10))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "delta(rank_cs(adj_close), 40)", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "add(zscore(min(overnight, 60)), max(sub(amplitude, skew(overnight, 40)), 120))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "min(ma(div(amplitude, ret), 10), 20)", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "rank_cs(std(min(overnight, 20), 60))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "rank_cs(roc(rank_ts(amplitude, 20), 5))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "min(rank_cs(ma(delta(ret, 5), 10)), 120)", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "roc(std(mul(max(amplitude, 5), skew(amplitude, 40)), 120), 5)", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "div(rank_cs(std(overnight, 120)), mul(sub(ret, std(ret, 10)), delta(overnight, 20)))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "add(std(roc(overnight, 20), 20), rank_ts(ma(overnight, 40), 60))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "rank_cs(skew(amplitude, 60))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "rank_cs(add(rank_cs(skew(adj_close, 80)), rank_ts(log_volume, 10)))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "std(rank_cs(std(amplitude, 5)), 20)", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "rank_cs(max(skew(zscore(overnight), 40), 80))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "roc(rank_ts(max(overnight, 5), 120), 20)", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "zscore(rank_ts(delta(amplitude, 5), 5))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "zscore(div(roc(overnight, 40), zscore(amplitude)))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "std(zscore(max(overnight, 40)), 20)", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "zscore(max(rank_ts(log_volume, 80), 60))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "min(rank_ts(zscore(rank_ts(overnight, 40)), 40), 120)", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "div(delta(sub(roc(adj_close, 20), ret), 5), div(rank_cs(overnight), ma(log_volume, 250)))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "delta(sub(zscore(log_volume), ret), 60)", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "zscore(rank_cs(roc(ret, 20)))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "sub(rank_ts(skew(overnight, 20), 10), roc(max(zscore(adj_close), 80), 10))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "delta(rank_cs(adj_close), 40)", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "add(zscore(min(overnight, 60)), max(sub(amplitude, skew(overnight, 40)), 120))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "min(ma(div(amplitude, ret), 10), 20)", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "rank_cs(std(min(overnight, 20), 60))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "rank_cs(roc(rank_ts(amplitude, 20), 5))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "min(rank_cs(ma(delta(ret, 5), 10)), 120)", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "roc(std(mul(max(amplitude, 5), skew(amplitude, 40)), 120), 5)", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "div(rank_cs(std(overnight, 120)), mul(sub(ret, std(ret, 10)), delta(overnight, 20)))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "add(std(roc(overnight, 20), 20), rank_ts(ma(overnight, 40), 60))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "rank_cs(skew(amplitude, 60))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "rank_cs(add(rank_cs(skew(adj_close, 80)), rank_ts(log_volume, 10)))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "std(rank_cs(std(amplitude, 5)), 20)", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "rank_cs(max(skew(zscore(overnight), 40), 80))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "roc(rank_ts(max(overnight, 5), 120), 20)", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "zscore(rank_ts(delta(amplitude, 5), 5))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "zscore(div(roc(overnight, 40), zscore(amplitude)))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "std(zscore(max(overnight, 40)), 20)", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "zscore(max(rank_ts(log_volume, 80), 60))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "min(rank_ts(zscore(rank_ts(overnight, 40)), 40), 120)", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "div(delta(sub(roc(adj_close, 20), ret), 5), div(rank_cs(overnight), ma(log_volume, 250)))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "delta(sub(zscore(log_volume), ret), 60)", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "zscore(rank_cs(roc(ret, 20)))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "sub(rank_ts(skew(overnight, 20), 10), roc(max(zscore(adj_close), 80), 10))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "delta(rank_cs(adj_close), 40)", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "add(zscore(min(overnight, 60)), max(sub(amplitude, skew(overnight, 40)), 120))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "min(ma(div(amplitude, ret), 10), 20)", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "rank_cs(std(min(overnight, 20), 60))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "rank_cs(roc(rank_ts(amplitude, 20), 5))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "min(rank_cs(ma(delta(ret, 5), 10)), 120)", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "roc(std(mul(max(amplitude, 5), skew(amplitude, 40)), 120), 5)", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "div(rank_cs(std(overnight, 120)), mul(sub(ret, std(ret, 10)), delta(overnight, 20)))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "add(std(roc(overnight, 20), 20), rank_ts(ma(overnight, 40), 60))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "rank_cs(skew(amplitude, 60))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "rank_cs(add(rank_cs(skew(adj_close, 80)), rank_ts(log_volume, 10)))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "std(rank_cs(std(amplitude, 5)), 20)", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "rank_cs(max(skew(zscore(overnight), 40), 80))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "roc(rank_ts(max(overnight, 5), 120), 20)", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "zscore(rank_ts(delta(amplitude, 5), 5))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "zscore(div(roc(overnight, 40), zscore(amplitude)))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "std(zscore(max(overnight, 40)), 20)", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "zscore(max(rank_ts(log_volume, 80), 60))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "min(rank_ts(zscore(rank_ts(overnight, 40)), 40), 120)", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "div(delta(sub(roc(adj_close, 20), ret), 5), div(rank_cs(overnight), ma(log_volume, 250)))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "delta(sub(zscore(log_volume), ret), 60)", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "zscore(rank_cs(roc(ret, 20)))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "sub(rank_ts(skew(overnight, 20), 10), roc(max(zscore(adj_close), 80), 10))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "delta(rank_cs(adj_close), 40)", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "add(zscore(min(overnight, 60)), max(sub(amplitude, skew(overnight, 40)), 120))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "min(ma(div(amplitude, ret), 10), 20)", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "rank_cs(std(min(overnight, 20), 60))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "rank_cs(roc(rank_ts(amplitude, 20), 5))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "min(rank_cs(ma(delta(ret, 5), 10)), 120)", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "roc(std(mul(max(amplitude, 5), skew(amplitude, 40)), 120), 5)", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "div(rank_cs(std(overnight, 120)), mul(sub(ret, std(ret, 10)), delta(overnight, 20)))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "add(std(roc(overnight, 20), 20), rank_ts(ma(overnight, 40), 60))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "rank_cs(skew(amplitude, 60))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "rank_cs(add(rank_cs(skew(adj_close, 80)), rank_ts(log_volume, 10)))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "std(rank_cs(std(amplitude, 5)), 20)", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "rank_cs(max(skew(zscore(overnight), 40), 80))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "roc(rank_ts(max(overnight, 5), 120), 20)", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "zscore(rank_ts(delta(amplitude, 5), 5))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "zscore(div(roc(overnight, 40), zscore(amplitude)))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "std(zscore(max(overnight, 40)), 20)", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "zscore(max(rank_ts(log_volume, 80), 60))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "min(rank_ts(zscore(rank_ts(overnight, 40)), 40), 120)", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "div(delta(sub(roc(adj_close, 20), ret), 5), div(rank_cs(overnight), ma(log_volume, 250)))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "delta(sub(zscore(log_volume), ret), 60)", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "zscore(rank_cs(roc(ret, 20)))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "sub(rank_ts(skew(overnight, 20), 10), roc(max(zscore(adj_close), 80), 10))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "delta(rank_cs(adj_close), 40)", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "add(zscore(min(overnight, 60)), max(sub(amplitude, skew(overnight, 40)), 120))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "min(ma(div(amplitude, ret), 10), 20)", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "rank_cs(std(min(overnight, 20), 60))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "rank_cs(roc(rank_ts(amplitude, 20), 5))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "min(rank_cs(ma(delta(ret, 5), 10)), 120)", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "roc(std(mul(max(amplitude, 5), skew(amplitude, 40)), 120), 5)", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "div(rank_cs(std(overnight, 120)), mul(sub(ret, std(ret, 10)), delta(overnight, 20)))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "add(std(roc(overnight, 20), 20), rank_ts(ma(overnight, 40), 60))", "accept": false, "raw": "REJECT: 测试否决"}
+{"iter": 1, "expr": "rank_cs(skew(amplitude, 60))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "rank_cs(add(rank_cs(skew(adj_close, 80)), rank_ts(log_volume, 10)))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "std(rank_cs(std(amplitude, 5)), 20)", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "rank_cs(max(skew(zscore(overnight), 40), 80))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "roc(rank_ts(max(overnight, 5), 120), 20)", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "zscore(rank_ts(delta(amplitude, 5), 5))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "zscore(div(roc(overnight, 40), zscore(amplitude)))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "std(zscore(max(overnight, 40)), 20)", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "zscore(max(rank_ts(log_volume, 80), 60))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "min(rank_ts(zscore(rank_ts(overnight, 40)), 40), 120)", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "div(delta(sub(roc(adj_close, 20), ret), 5), div(rank_cs(overnight), ma(log_volume, 250)))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "delta(sub(zscore(log_volume), ret), 60)", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "zscore(rank_cs(roc(ret, 20)))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "sub(rank_ts(skew(overnight, 20), 10), roc(max(zscore(adj_close), 80), 10))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "delta(rank_cs(adj_close), 40)", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "add(zscore(min(overnight, 60)), max(sub(amplitude, skew(overnight, 40)), 120))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "min(ma(div(amplitude, ret), 10), 20)", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "rank_cs(std(min(overnight, 20), 60))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "rank_cs(roc(rank_ts(amplitude, 20), 5))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "min(rank_cs(ma(delta(ret, 5), 10)), 120)", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "roc(std(mul(max(amplitude, 5), skew(amplitude, 40)), 120), 5)", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "div(rank_cs(std(overnight, 120)), mul(sub(ret, std(ret, 10)), delta(overnight, 20)))", "accept": true, "raw": "ACCEPT: ok"}
+{"iter": 1, "expr": "add(std(roc(overnight, 20), 20), rank_ts(ma(overnight, 40), 60))", "accept": true, "raw": "ACCEPT: ok"}

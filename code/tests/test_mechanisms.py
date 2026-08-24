@@ -201,3 +201,16 @@ def test_make_evolve_llm_hook():
     node = hook(tree=None, fields=ALLOWED, r=None)
     node.validate()
     assert node.to_str() == "zscore(ma(close, 20))"
+
+
+def test_parse_verdict_first_occurrence():
+    """终审裁决解析(2026-08-24 修正):行首关键词优先 + 全文首个出现兜底,
+    条件句「若X则ACCEPT否则REJECT」不得被误判成放行;无法解析仍 fail-open。"""
+    assert M.parse_verdict("REJECT: div 分母趋零")[0] is False
+    assert M.parse_verdict("ACCEPT: 结构合理")[0] is True
+    # 行首 REJECT 不被后文提到的 ACCEPT 覆盖(原实现的 bug:ACCEPT 全文优先)
+    assert M.parse_verdict("REJECT: 边界除零;若换字段可 ACCEPT")[0] is False
+    # 条件句(不规范输出,prompt 已要求行首关键词):按首个出现,倾向 fail-open
+    assert M.parse_verdict("若窗口不足则 ACCEPT 否则 REJECT")[0] is True
+    assert M.parse_verdict("接受:结构合理")[0] is True                      # 中文输出 fail-open
+    assert M.parse_verdict("")[0] is True

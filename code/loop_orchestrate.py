@@ -11,6 +11,7 @@
 """
 from __future__ import annotations
 
+import json
 import time
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
@@ -31,6 +32,7 @@ from engine.fsa import FSA, skeleton
 from filters import FilterResult, apply_filters
 from llm.mechanisms import (add_family_note, family_of, is_metric_reason,
                             register_family, review_expression)
+from paths import OUTPUT_DIR
 
 # 过滤项 → 短标签(供每轮拒绝分类汇总)
 _FILTER_LABELS = {
@@ -248,6 +250,15 @@ def run_round(*, checkpoint: Checkpoint, evolver: Evolver, evaluator: Evaluator,
         # 生成 prompt 的「已知缺陷」栏**(防 Goodhart:指标数值永不回流生成端)
         if fr.passed and llm_reviewer is not None:
             accept, why = review_expression(llm_reviewer, node, metrics=m)
+            # 终审审计(2026-08-24):裁决原文落盘——此前 47 次调用 0 拒且原文全丢,
+            # 无法排除 GLM 偶发中文输出被默认放行;现在每次裁决可追溯
+            try:
+                with open(OUTPUT_DIR / "final_review_log.jsonl", "a", encoding="utf-8") as _f:
+                    _f.write(json.dumps({"iter": new_iter, "expr": node.to_str(),
+                                         "accept": accept, "raw": why[:300]},
+                                        ensure_ascii=False) + "\n")
+            except Exception:  # noqa: BLE001  审计写失败不崩轮
+                pass
             if not accept:
                 fam = family_of(h)
                 if fam and not is_metric_reason(why):
