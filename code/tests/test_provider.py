@@ -31,6 +31,27 @@ def test_factory_returns_deepseek_with_preset():
     assert prov.model == "deepseek-chat"
 
 
+def test_factory_returns_kimi_with_preset():
+    prov = P.get_provider("kimi", api_key="sk-kimi-test")
+    assert isinstance(prov, P.OpenAICompatibleProvider)
+    assert prov.base_url == "https://api.moonshot.cn/v1"
+    assert prov.api_key == "sk-kimi-test"
+    assert prov.model == "kimi-latest"
+
+
+def test_kimi_without_key_raises(monkeypatch):
+    monkeypatch.delenv("KIMI_API_KEY", raising=False)
+    with pytest.raises(ValueError):
+        P.get_provider("kimi")
+
+
+def test_kimi_reads_env_key(monkeypatch):
+    monkeypatch.setenv("KIMI_API_KEY", "sk-kimi-from-env")
+    prov = P.get_provider("kimi")
+    assert prov.api_key == "sk-kimi-from-env"
+    assert prov.model == "kimi-latest"
+
+
 def test_factory_returns_glm_with_preset():
     prov = P.get_provider("glm", api_key="glm-test")
     assert isinstance(prov, P.OpenAICompatibleProvider)
@@ -60,10 +81,13 @@ def test_deepseek_reads_env_key(monkeypatch):
 # ---------------- OpenAI 兼容请求构造(monkeypatch,不联网) ----------------
 
 class _FakeResp:
-    def __init__(self, payload):
+    def __init__(self, payload, status_code=200, text=""):
         self._payload = payload
+        self.status_code = status_code
+        self.text = text or (payload if isinstance(payload, str) else "")
     def raise_for_status(self):
-        pass
+        if self.status_code >= 400:
+            raise __import__("requests").HTTPError(f"HTTP {self.status_code}")
     def json(self):
         return self._payload
 
@@ -87,3 +111,39 @@ def test_openai_compat_request_shape(monkeypatch):
     assert captured["json"]["temperature"] == 0.9
     assert captured["json"]["messages"][0]["role"] == "system"
     assert captured["json"]["messages"][1]["content"] == "生成一个因子"
+
+
+# ---------------- 429 限流退避(2026-08-19,kimi org RPM=3) ----------------
+
+def test_429_retry_then_success(monkeypatch):
+    calls = []
+    def fake_post(url, headers=None, json=None, timeout=None):
+        calls.append(url)
+        if len(calls) == 1:
+            return _FakeResp({"error": {"message": "x"}}, status_code=429,
+                             text='{"error":{"message":"max RPM reached, try after 5 seconds"}}')
+        return _FakeResp({"choices": [{"message": {"content": "retried-ok"}}]})
+    monkeypatch.setattr(P.requests, "post", fake_post)
+
+    prov = P.get_provider("deepseek", api_key="sk-x", retry_on_429=2)
+    out = prov.complete("hi")
+    assert out == "retried-ok"
+    assert len(calls) == 2
+    assert prov._429_waits >= 5.0
+
+
+def test_429_exhausts_retries_raises(monkeypatch):
+    def fake_post(url, headers=None, json=None, timeout=None):
+        return _FakeResp({"error": {"message": "rate limited"}}, status_code=429)
+    monkeypatch.setattr(P.requests, "post", fake_post)
+
+    prov = P.get_provider("deepseek", api_key="sk-x", retry_on_429=1)
+    with pytest.raises(Exception):
+        prov.complete("hi")
+
+
+def test_kimi_preset_builtin_throttle():
+    prov = P.get_provider("kimi", api_key="sk-kimi-x")
+    assert prov.fixed_temperature == 1.0
+    assert prov.min_interval >= 25.0
+    assert prov.retry_on_429 >= 1

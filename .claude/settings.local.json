@@ -15,7 +15,10 @@
       "PowerShell(Get-Date *)",
       "PowerShell($cp = Get-Content \"C:\\\\Users\\\\Administrator\\\\Desktop\\\\codewhale\\\\factor_loop_engine\\\\output\\\\checkpoint.json\" -Raw -Encoding utf8 | ConvertFrom-Json; $cp.PSObject.Properties | ForEach-Object { if \\($_.Value -is [System.Array]\\) { \"$\\($_.Name\\): array[$\\($_.Value.Count\\)]\" } elseif \\($_.Value -is [PSCustomObject]\\) { \"$\\($_.Name\\): object\\($\\($_.Value.PSObject.Properties.Name -join ', '\\)\\)\" } else { \"$\\($_.Name\\): $\\($_.Value\\)\" } })",
       "PowerShell(Remove-Item *)",
-      "PowerShell(uv run python -c \"import json; cp=json.load\\(open\\('output/checkpoint.json',encoding='utf-8'\\)\\); f=cp['stored_factors'][-1]; print\\(f['expr']\\); m=f['metrics']; print\\(f\\\\\"ic={m['ic_mean']:.3f} icir={m['icir']:.2f} sharpe={m['ls_sharpe']:.2f} mono={m['monotonicity']:.2f}\\\\\"\\)\")"
+      "PowerShell(uv run python -c \"import json; cp=json.load\\(open\\('output/checkpoint.json',encoding='utf-8'\\)\\); f=cp['stored_factors'][-1]; print\\(f['expr']\\); m=f['metrics']; print\\(f\\\\\"ic={m['ic_mean']:.3f} icir={m['icir']:.2f} sharpe={m['ls_sharpe']:.2f} mono={m['monotonicity']:.2f}\\\\\"\\)\")",
+      "Bash(git add *)",
+      "Bash(git commit -m '夜间备份: iter=513 stored=23\\(8/19-8/24 停机后恢复,自动\\) *)",
+      "Bash(git push *)"
     ]
   }
 }

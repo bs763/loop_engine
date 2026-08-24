@@ -31,7 +31,7 @@ def main() -> None:
     print("=== LLM 连通性验证(各 1 条最小请求)===")
     ok_gen = smoke("生成端", generation_provider())
     ok_rev = smoke("审查端", review_provider())
-    print(f"\n结果:生成端={'OK ✓' if ok_gen else 'FAIL ✗'}   审查端={'OK ✓' if ok_rev else 'FAIL ✗'}")
+    print(f"\n结果:生成端={'OK' if ok_gen else 'FAIL'}   审查端={'OK' if ok_rev else 'FAIL'}")
 
 
 if __name__ == "__main__":
