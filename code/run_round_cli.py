@@ -165,6 +165,12 @@ def main() -> None:
             print(f"LLM: 生成 ok{g['llm_gen_ok']}/解析失败{g['llm_gen_bad_output']}/"
                   f"API错{g['llm_gen_api_error']}/兜底{g['llm_gen_fallback']}"
                   f" | 终审 ok{r_ok}/错{r_err}")
+        # 按生成源的过审查率(用户 2026-08-24:健侧 LLM 生成质量——ok 只说明合法,
+        # 过审查才说明结构质量;llm 与遗传各源并排便于对比)
+        if stats.gen_src_total:
+            parts = [f"{op} {stats.gen_src_pass_review.get(op, 0)}/{n}"
+                     for op, n in sorted(stats.gen_src_total.items(), key=lambda kv: -kv[1])]
+            print(f"过审查(按源): " + ", ".join(parts))
     print(f"STATUS: iter={stats.iteration} tested={len(cp.tested_hashes)} "
           f"stored={stats.stored_total} new={stats.n_pass_filters} "
           f"elapsed={stats.elapsed_sec/60:.1f}min workers={args.workers}"

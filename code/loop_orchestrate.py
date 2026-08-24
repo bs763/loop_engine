@@ -53,6 +53,8 @@ class RoundStats:
     n_pass_filters: int         # 入库
     stored_total: int
     n_resampled: int = 0            # 死骨架重采样替换数(失败模式库回流)
+    gen_src_total: dict = field(default_factory=dict)    # 各生成源的新测候选数 {op: n}
+    gen_src_pass_review: dict = field(default_factory=dict)  # 各生成源过审查数(质量观测,用户 2026-08-24)
     elapsed_sec: float = 0.0    # 本轮耗时(秒)
     new_factor_exprs: list = field(default_factory=list)
     sample_reject_reasons: list = field(default_factory=list)
@@ -178,15 +180,20 @@ def run_round(*, checkpoint: Checkpoint, evolver: Evolver, evaluator: Evaluator,
     reviewed: list = []          # [(node, hash)]
     n_unique = 0
     seen_this_round: set[str] = set()
-    for node in candidates:
+    src_total: Counter = Counter()
+    src_pass: Counter = Counter()
+    for i, node in enumerate(candidates):
         h = node.expr_hash()
         if checkpoint.is_tested(h) or h in seen_this_round:
             continue
         seen_this_round.add(h)
         n_unique += 1
+        op = cand_meta[i].get("op", "?") if i < len(cand_meta) else "?"
+        src_total[op] += 1
         simplified, _reason = review.apply(node)
         if simplified is not None:
             reviewed.append((simplified, h))
+            src_pass[op] += 1
         else:
             checkpoint.add_tested(h)   # 审查未过=确定性拒绝,标已测去重
             reject_records.append({"iter": new_iter, "hash": h, "expr": node.to_str(),
@@ -358,6 +365,7 @@ def run_round(*, checkpoint: Checkpoint, evolver: Evolver, evaluator: Evaluator,
         n_pass_review=len(reviewed), n_backtested=len(reviewed),
         n_pass_filters=len(new_exprs), stored_total=len(checkpoint.stored_factors),
         n_resampled=n_resampled,
+        gen_src_total=dict(src_total), gen_src_pass_review=dict(src_pass),
         elapsed_sec=time.perf_counter() - t0,
         new_factor_exprs=new_exprs, sample_reject_reasons=rejects,
         reject_records=reject_records, reject_summary=dict(reject_summary),

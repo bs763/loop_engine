@@ -204,3 +204,15 @@ def test_store_persists_ls_ret(tmp_path):
     stored_with_ret = [f for f in cp2.stored_factors if f.get("ls_ret")]
     assert stored_with_ret, "入库因子应带 ls_ret"
     assert len(stored_with_ret[0]["ls_ret"]) > 20
+
+
+def test_gen_src_pass_review_counts(tmp_path):
+    """按生成源的过审查计数(2026-08-24 用户:健侧 LLM 生成质量)。"""
+    panels = _synth_panels()
+    cp = Checkpoint(tmp_path / "cp.json")
+    stats = run_round(checkpoint=cp, evolver=Evolver(FIELDS, rng=np.random.default_rng(7)),
+                      evaluator=AlwaysPass(), field_panels=panels, fsa=FSA(),
+                      fields=FIELDS, n_candidates=40)
+    assert set(stats.gen_src_total) == {"random"}          # 无父本 → 全 random 源
+    assert stats.gen_src_pass_review["random"] <= stats.gen_src_total["random"]
+    assert sum(stats.gen_src_pass_review.values()) == stats.n_pass_review
