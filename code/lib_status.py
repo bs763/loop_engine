@@ -84,6 +84,12 @@ def main() -> None:
                       f" | {f.get('expr', '')[:46]}")
         _corr_report(factors)
         print(oos_health(factors))
+    # 失败模式库体检(用户 2026-08-24:全灭/占位骨架计数,无库文件 → 提示回填)
+    from engine import failed_patterns as fplib
+    if (OUTPUT_DIR / "failed_patterns.json").exists():
+        print(fplib.summary_line())
+    else:
+        print("失败模式库: 未建(可跑 code/rebuild_failed_patterns.py 回填历史)")
 
 
 if __name__ == "__main__":

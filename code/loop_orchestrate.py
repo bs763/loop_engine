@@ -22,8 +22,10 @@ import pandas as pd
 from backtest.interface import Evaluator
 from engine import review
 from engine.checkpoint import Checkpoint
-from engine.config import BACKTEST_START, COVERAGE_LOCAL_RATIO_MIN, SCALE_DOMINANCE
+from engine.config import (BACKTEST_START, COVERAGE_LOCAL_RATIO_MIN, DEAD_RESAMPLE_TRIES,
+                           SCALE_DOMINANCE)
 from engine.evolve import Evolver
+from engine import failed_patterns as fplib
 from engine.expression import evaluate, parse
 from engine.fsa import FSA, skeleton
 from filters import FilterResult, apply_filters
@@ -48,6 +50,7 @@ class RoundStats:
     n_backtested: int
     n_pass_filters: int         # 入库
     stored_total: int
+    n_resampled: int = 0            # 死骨架重采样替换数(失败模式库回流)
     elapsed_sec: float = 0.0    # 本轮耗时(秒)
     new_factor_exprs: list = field(default_factory=list)
     sample_reject_reasons: list = field(default_factory=list)
@@ -139,10 +142,29 @@ def run_round(*, checkpoint: Checkpoint, evolver: Evolver, evaluator: Evaluator,
             field_usage[fld] += 1
     evolver.set_field_usage(dict(field_usage))
     candidates = evolver.generate(parents, n_candidates)
+    cand_meta = list(getattr(evolver, "last_gen_meta", []))
+    cand_meta += [{}] * (len(candidates) - len(cand_meta))
+    # 死骨架重采样(用户 2026-08-24,失败模式库回流):命中全灭骨架的候选丢弃补采,
+    # 每槽最多 DEAD_RESAMPLE_TRIES 次,仍死则保留原候选——规则放宽后仍有突破机会,绝不死循环。
+    dead_sk = fplib.dead_skeletons()
+    n_resampled = 0
+    if dead_sk:
+        for i, cand in enumerate(candidates):
+            if skeleton(cand) not in dead_sk:
+                continue
+            for _ in range(DEAD_RESAMPLE_TRIES):
+                rep = evolver.generate(parents, 1)
+                if not rep:
+                    break
+                candidates[i] = rep[0]
+                cand_meta[i] = (list(getattr(evolver, "last_gen_meta", [])) or [{}])[0]
+                n_resampled += 1
+                if skeleton(rep[0]) not in dead_sk:
+                    break
     # 族归属(2026-08-18 补链):LLM 候选生成时已登记;演化候选(mutation/crossover/perturb)
     # 继承父本的族(库存记录的 family 字段)——终审拒因回流由此对全部候选生效。
     parent_fam = {f.get("hash"): f.get("family") for f in checkpoint.stored_factors}
-    for cand, meta in zip(candidates, getattr(evolver, "last_gen_meta", [])):
+    for cand, meta in zip(candidates, cand_meta):
         if family_of(cand.expr_hash()) is not None:
             continue                              # LLM 生成已登记
         ph = meta.get("parent") or (meta.get("parents") or [None])[0]
@@ -167,6 +189,7 @@ def run_round(*, checkpoint: Checkpoint, evolver: Evolver, evaluator: Evaluator,
             checkpoint.add_tested(h)   # 审查未过=确定性拒绝,标已测去重
             reject_records.append({"iter": new_iter, "hash": h, "expr": node.to_str(),
                                    "disp": "review_reject", "reasons": [_reason]})
+            fplib.record_reject(node, "review_reject", [_reason], new_iter)
 
     # ---- 3) 回测 + 十一项过滤(此处才接触指标;不回流给生成端)----
     new_exprs: list[str] = []
@@ -214,6 +237,7 @@ def run_round(*, checkpoint: Checkpoint, evolver: Evolver, evaluator: Evaluator,
                 rejects.append(f"{node.to_str()}: 回测异常 {m}")
             reject_records.append({"iter": new_iter, "hash": h, "expr": node.to_str(),
                                    "disp": "backtest_error", "reasons": [m]})
+            fplib.record_reject(node, "backtest_error", [m], new_iter)
             if m.startswith("ValueError"):
                 checkpoint.add_tested(h)   # 确定性坏表达式 → 永久去重
             continue
@@ -269,11 +293,13 @@ def run_round(*, checkpoint: Checkpoint, evolver: Evolver, evaluator: Evaluator,
             new_exprs.append(node.to_str())
             reject_records.append({"iter": new_iter, "hash": h, "expr": node.to_str(),
                                    "disp": disp, "reasons": disp_reasons})
+            fplib.record_stored(node, new_iter)   # 成功史永久(被替换出库不扣减)
         else:
             if len(rejects) < 5:
                 rejects.append(f"{node.to_str()}: {fr.reasons}")
             reject_records.append({"iter": new_iter, "hash": h, "expr": node.to_str(),
                                    "disp": "filter_reject", "reasons": fr.reasons})
+            fplib.record_reject(node, "filter_reject", fr.reasons, new_iter)
 
     # ---- 3c) 拒绝分类汇总(轻量计数,供每轮窗口/追溯)----
     reject_summary: Counter = Counter()
@@ -316,6 +342,7 @@ def run_round(*, checkpoint: Checkpoint, evolver: Evolver, evaluator: Evaluator,
         iteration=checkpoint.iteration, n_generated=len(candidates), n_tested=n_unique,
         n_pass_review=len(reviewed), n_backtested=len(reviewed),
         n_pass_filters=len(new_exprs), stored_total=len(checkpoint.stored_factors),
+        n_resampled=n_resampled,
         elapsed_sec=time.perf_counter() - t0,
         new_factor_exprs=new_exprs, sample_reject_reasons=rejects,
         reject_records=reject_records, reject_summary=dict(reject_summary),
@@ -327,4 +354,5 @@ def run_round(*, checkpoint: Checkpoint, evolver: Evolver, evaluator: Evaluator,
     })
     checkpoint.capture(fsa=fsa)
     checkpoint.save()
+    fplib.save(stats.iteration)     # 失败模式库轮末落盘(原子写)
     return stats

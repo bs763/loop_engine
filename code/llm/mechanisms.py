@@ -163,8 +163,10 @@ def _grammar() -> str:
 
 
 def build_generation_prompt(mech: dict, fields: list[str]) -> str:
+    from engine.failed_patterns import prompt_block   # 局部导入避免环(本模块被 loop_orchestrate 引)
     notes = family_notes().get(mech.get("id", ""), [])
     avoid = ("\n【该机制族的已知缺陷,生成时务必规避】\n- " + "\n- ".join(notes)) if notes else ""
+    dead = prompt_block()   # 全灭骨架 Top-K(结构级聚合,无指标数值;空库 → 空串)
     return f"""你是 A 股量化研究员。基于下列因子语法,生成【恰好一个】因子表达式,体现指定市场机制。
 
 【算子(14)】
@@ -173,10 +175,11 @@ def build_generation_prompt(mech: dict, fields: list[str]) -> str:
 【硬规则】
 - s-表达式嵌套,最大深度 4 层;
 - add/sub 不得跨量纲(禁止 add(close, volume) 这类);只用上面字段;
-- 时序算子(ma/std/max/min/roc/delta/skew/rank_ts)必须带第二参数窗口 n,且 5≤n≤120,
-  禁止省略(如 rank_ts(x) 非法,应为 rank_ts(x, 20));
+- 时序算子必须带第二参数窗口 n,禁止省略(如 rank_ts(x) 非法,应为 rank_ts(x, 20)),
+  且各算子窗口范围不同:ma 3-250,std/max/min/rank_ts 5-120,roc/delta 3-60,skew 10-120;
+  建议取规整窗口 5/10/20/40/60/80/120/250;
 【目标机制】{mech['name']}: {', '.join(mech['prototypes'])}
-【经济学假设】{mech['hint']}{avoid}
+【经济学假设】{mech['hint']}{avoid}{dead}
 
 只输出一个合法 s-表达式,不要解释、不要 markdown。"""
 

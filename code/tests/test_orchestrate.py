@@ -139,3 +139,55 @@ def test_store_accumulates_and_fsa_persists(tmp_path):
                    field_panels=panels, fsa=fsa2, fields=FIELDS, n_candidates=40)
     assert s2.iteration == 2
     assert cp2.stored_factors[0]["expr"]  # 入库记录有表达式
+
+
+# ---------------- 死骨架重采样(失败模式库回流,2026-08-24)----------------
+
+class _ScriptedEvolver:
+    """首次 generate 返回 n 个死骨架候选;之后每次补采返回 1 个活骨架候选。"""
+    def __init__(self, dead, alive):
+        self.dead, self.alive = dead, alive
+        self.last_gen_meta: list[dict] = []
+        self.calls = 0
+
+    def set_field_usage(self, fu):
+        pass
+
+    def generate(self, parents, n, llm_time_budget=360.0):
+        self.calls += 1
+        if self.calls == 1:
+            self.last_gen_meta = [{"op": "random"}] * n
+            return [self.dead] * n
+        self.last_gen_meta = [{"op": "random"}]
+        return [self.alive]
+
+
+def test_dead_skeleton_resampled(tmp_path):
+    """全灭骨架候选被丢弃补采;占位骨架(纯#9拒)不被重采样(挑战者路径)。"""
+    from engine.expression import parse
+    from engine import failed_patterns as fplib
+    dead = parse("add(rank_cs(ret), rank_cs(overnight))")     # 骨架: add(rank_cs(FLD), rank_cs(FLD))
+    occ = parse("zscore(std(rank_cs(ret), 20))")              # 骨架: zscore(std(rank_cs(FLD), N))
+    alive = parse("add(skew(ret, 40), ma(overnight, 20))")
+    for _ in range(12):
+        fplib.record_reject(dead, "filter_reject", ["13.单调性=0.5≤0.85"], 5)   # 内因 → 死
+        fplib.record_reject(occ, "filter_reject", ["9.IC相关性=0.9≥0.7"], 5)    # 纯占位 → 不死
+
+    panels = _synth_panels()
+    cp = Checkpoint(tmp_path / "cp.json")
+    ev = _ScriptedEvolver(dead, alive)
+    stats = run_round(checkpoint=cp, evolver=ev, evaluator=MockEvaluator(seed=2),
+                      field_panels=panels, fsa=FSA(), fields=FIELDS, n_candidates=3)
+    assert stats.n_resampled == 3                       # 3 个死骨架槽全部补采成功
+    assert ev.calls == 4                                # 1 次主生成 + 3 次补采
+    # 库文件落盘且 updated_iter = 本轮
+    import json
+    data = json.loads(fplib._PATH.read_text(encoding="utf-8"))
+    assert data["updated_iter"] == 1
+
+    # 占位骨架不触发重采样:主生成全占位 → calls 停在 1
+    cp2 = Checkpoint(tmp_path / "cp2.json")
+    ev2 = _ScriptedEvolver(occ, alive)
+    stats2 = run_round(checkpoint=cp2, evolver=ev2, evaluator=MockEvaluator(seed=2),
+                       field_panels=panels, fsa=FSA(), fields=FIELDS, n_candidates=3)
+    assert stats2.n_resampled == 0 and ev2.calls == 1

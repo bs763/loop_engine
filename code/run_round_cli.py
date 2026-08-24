@@ -164,9 +164,12 @@ def main() -> None:
                   f" | 终审 ok{r_ok}/错{r_err}")
     print(f"STATUS: iter={stats.iteration} tested={len(cp.tested_hashes)} "
           f"stored={stats.stored_total} new={stats.n_pass_filters} "
-          f"elapsed={stats.elapsed_sec/60:.1f}min workers={args.workers}")
+          f"elapsed={stats.elapsed_sec/60:.1f}min workers={args.workers}"
+          + (f" resampled={stats.n_resampled}" if stats.n_resampled else ""))
     from lib_status import oos_health
     print(oos_health(cp.stored_factors))   # OOS 崩塌跳闸(用户 2026-08-18:ALERT → 停 loop 汇报)
+    from engine import failed_patterns as fplib
+    print(fplib.summary_line())            # 失败模式库体检(全灭/占位骨架计数)
     print(f"SIGNALS: {round_signals(cp)}")
 
 
