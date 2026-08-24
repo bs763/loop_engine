@@ -266,6 +266,10 @@ def run_round(*, checkpoint: Checkpoint, evolver: Evolver, evaluator: Evaluator,
             new_factor = {
                 "expr": node.to_str(), "hash": h, "skeleton": skeleton(node),
                 "ic_series": (m.ic_series if capture_ic_series else None),
+                # 多空日收益(ls_nav 差分;pearson 对仿射变换不变,diff vs pct 等价)——
+                # PnL 口径相关性观察用(用户 2026-08-24:只进体检行,不做准入门槛)
+                "ls_ret": (np.diff(np.asarray(m.ls_nav, dtype=float)).tolist()
+                           if getattr(m, "ls_nav", None) is not None else None),
                 "metrics": _metrics_summary(m),
                 "oos_metrics": oos_metrics,
                 "family": family_of(h),           # 生成机制族(供演化子代继承/拒因回流)

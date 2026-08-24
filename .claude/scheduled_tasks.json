@@ -1,3 +1,13 @@
 {
-  "tasks": []
+  "tasks": [
+    {
+      "id": "4ae03ca5",
+      "cron": "2 12 24 8 *",
+      "prompt": "恢复 factor_loop_engine 因子挖掘 loop 链式调度(12:00 高峰暂停结束的唤醒)。项目根 C:\\Users\\Administrator\\Desktop\\codewhale\\factor_loop_engine。严格按项目 skill .claude\\skills\\factor-loop-orchestrator.md 执行(每轮六步 + 第6步【完整汇报格式,逐项必填】+ 四道防线边界),要点:1) lib_status 读状态;2) uv run code/run_round_cli.py --n 100 跑一轮(IS-ONLY 准入+OOS 存档全自动,注意带 >> output/loop.log 2>&1 重定向防日志断更);3) 按完整格式汇报(模式行/漏斗/LLM健康/OOS体检/入库替换明细含 IS+OOS 指标/触发项逐项:相关性、回测异常准确数字、新闸、族记忆 family_notes 新增、lessons);4) 诊断:stuck≥15 停机(用户 2026-08-18 放宽,原8);OOS ALERT(体检行)立即停+汇报全库衰减;LLM 兜底/API错攀升→查;回测异常≥10→查并发;另观察失败模式库行(全灭/占位骨架计数变化与 resampled 数);5) 可复用经验才记 lessons;6) 完成一轮立即链下一轮。每轮前查北京时间(UTC+8):进入高峰窗口(每天含周末 9-12、14-18)则停,用 CronCreate 排 durable 一次性唤醒(12:02/18:02,用当天实际日期,记得 recurring:false)传入本提示词原样续链;夜间≥21:00 首轮做 git 备份(add -A + add -f output/checkpoint.json + commit + push);高风险动作先问用户。",
+      "createdAt": 1787553016804,
+      "createdBySessionId": "0472ed8b-fae8-4bba-a42a-95fe02296d71",
+      "createdByPid": 17140,
+      "createdByProcStart": "134320235155214381"
+    }
+  ]
 }

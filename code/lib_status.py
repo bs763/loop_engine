@@ -34,24 +34,58 @@ def oos_health(factors: list) -> str:
     return f"OOS体检: n={len(ics)} 中位OOS IC={med:+.4f} 负占比={neg:.0%}(正常)"
 
 
-def _corr_report(factors: list) -> None:
-    """两两 IC 相关体检(2026-08-17 加,#9 是入库门槛而非持有门槛,入库后相关会漂移——
-    0007 与第一名 0.78 即被坏数据掩盖的存量违规)。≥0.7 打印明细供处置。"""
-    sf = [f for f in factors if f.get("ic_series")]
+def _pairwise_corr(factors: list, key: str) -> tuple[int, list, list]:
+    """对在库因子按指定序列字段算两两相关 → (对数, ≥0.7 违规对, 0.5-0.7 灰区对)。
+
+    key="ic_series"(IC 口径,预测强度共振)/ "ls_ret"(PnL 口径,持仓盈亏共振——
+    共同暴露的盲区,IC 口径看不到;用户 2026-08-24 定为观察项,不做准入)。
+    """
+    sf = [f for f in factors if f.get(key) is not None and len(f[key]) >= 20]
     n = len(sf)
     if n < 2:
-        return
-    s = [np.asarray(f["ic_series"], dtype=float) for f in sf]
-    hi = []
+        return 0, [], []
+    s = [np.asarray(f[key], dtype=float) for f in sf]
+    hi, gray = [], []
     for i in range(n):
         for j in range(i + 1, n):
             m = min(len(s[i]), len(s[j]))
+            if m < 20:
+                continue
             c = float(np.corrcoef(s[i][-m:], s[j][-m:])[0, 1])
+            pair = (abs(c), c, sf[i]["expr"], sf[j]["expr"])
             if abs(c) >= 0.7:
-                hi.append((abs(c), c, sf[i]["expr"], sf[j]["expr"]))
-    print(f"相关性体检: 两两 {n * (n - 1) // 2} 对,≥0.7 共 {len(hi)} 对")
-    for _a, c, e1, e2 in sorted(hi, reverse=True):
-        print(f"  {c:+.3f}  [{e1[:40]}] × [{e2[:40]}]")
+                hi.append(pair)
+            elif abs(c) >= 0.5:
+                gray.append(pair)
+    return n * (n - 1) // 2, hi, gray
+
+
+def corr_report_lines(factors: list, show_gray: int = 5) -> list[str]:
+    """双口径相关性体检行(每轮汇报 + lib_status 共用)。
+
+    灰区(0.5-0.7)持续偏多 = 单一价量数据源的相关性天花板逼近,
+    是「是否引入新数据源」讨论的触发信号(用户 2026-08-24 拍板)。
+    """
+    lines = []
+    for key, label in (("ic_series", "IC口径"), ("ls_ret", "PnL口径")):
+        npairs, hi, gray = _pairwise_corr(factors, key)
+        if npairs == 0:
+            lines.append(f"相关性体检({label}): 样本不足(无 {key} 存档)")
+            continue
+        lines.append(f"相关性体检({label}): 两两 {npairs} 对,≥0.7 共 {len(hi)} 对,"
+                     f"灰区0.5-0.7 共 {len(gray)} 对")
+        for _a, c, e1, e2 in sorted(hi, reverse=True):
+            lines.append(f"  {c:+.3f}  [{e1[:40]}] × [{e2[:40]}]")
+        for _a, c, e1, e2 in sorted(gray, reverse=True)[:show_gray]:
+            lines.append(f"  {c:+.3f}(灰)  [{e1[:40]}] × [{e2[:40]}]")
+    return lines
+
+
+def _corr_report(factors: list) -> None:
+    """两两相关体检(2026-08-17 加,#9 是入库门槛而非持有门槛,入库后相关会漂移——
+    0007 与第一名 0.78 即被坏数据掩盖的存量违规)。≥0.7 打印明细供处置。"""
+    for line in corr_report_lines(factors):
+        print(line)
 
 
 def main() -> None:

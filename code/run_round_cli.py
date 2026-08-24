@@ -166,8 +166,10 @@ def main() -> None:
           f"stored={stats.stored_total} new={stats.n_pass_filters} "
           f"elapsed={stats.elapsed_sec/60:.1f}min workers={args.workers}"
           + (f" resampled={stats.n_resampled}" if stats.n_resampled else ""))
-    from lib_status import oos_health
+    from lib_status import oos_health, corr_report_lines
     print(oos_health(cp.stored_factors))   # OOS 崩塌跳闸(用户 2026-08-18:ALERT → 停 loop 汇报)
+    for line in corr_report_lines(cp.stored_factors):   # 双口径相关+灰区(观察,不做准入)
+        print(line)
     from engine import failed_patterns as fplib
     print(fplib.summary_line())            # 失败模式库体检(全灭/占位骨架计数)
     print(f"SIGNALS: {round_signals(cp)}")

@@ -191,3 +191,16 @@ def test_dead_skeleton_resampled(tmp_path):
     stats2 = run_round(checkpoint=cp2, evolver=ev2, evaluator=MockEvaluator(seed=2),
                        field_panels=panels, fsa=FSA(), fields=FIELDS, n_candidates=3)
     assert stats2.n_resampled == 0 and ev2.calls == 1
+
+
+def test_store_persists_ls_ret(tmp_path):
+    """入库持久化 ls_ret(多空日收益,PnL 口径相关观察,2026-08-24)。"""
+    panels = _synth_panels()
+    cp = Checkpoint(tmp_path / "cp.json")
+    run_round(checkpoint=cp, evolver=Evolver(FIELDS, rng=np.random.default_rng(5)),
+              evaluator=AlwaysPass(), field_panels=panels, fsa=FSA(),
+              fields=FIELDS, n_candidates=40)
+    cp2 = Checkpoint.load(tmp_path / "cp.json")
+    stored_with_ret = [f for f in cp2.stored_factors if f.get("ls_ret")]
+    assert stored_with_ret, "入库因子应带 ls_ret"
+    assert len(stored_with_ret[0]["ls_ret"]) > 20
