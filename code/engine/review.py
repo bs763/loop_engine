@@ -101,14 +101,23 @@ _EXTREME_OPS = {"max", "min"}  # 滚动极值
 
 
 def _roc_on_cs(node: Node) -> str | None:
-    """roc 语义闸(2026-08-18):roc(变化率,做除法)的直接子节点为截面算子(rank_cs/zscore)
-    → 拒。rank 有 [0,1] 下界可无限趋零、zscore 会过零——做分母必产生爆炸值
-    (实测 roc(rank_cs(·)) 分支截面 std 达 9.6,同库正常分支 0.3)。delta 差分有界,不受限。"""
-    for n in node.walk():
+    """roc 语义闸(2026-08-18 建;2026-08-24 用户放宽为「必须包装」):
+    roc(变化率,做除法)的直接子节点为截面算子(rank_cs/zscore)时,原始输出必爆炸
+    (rank 有 [0,1] 下界可无限趋零、zscore 会过零——做分母产生爆炸值,实测分支 std 9.6)。
+    但 roc(截面) 的**有界包装** rank_cs(roc(rank_cs(x), n)) = 截面排名位置变化(排名动量),
+    经济意义清晰且库内 Top2 即此结构 → 放行;仅裸用(父节点非 rank_cs/zscore)仍拒。
+    delta 差分有界,不受限。"""
+    def _check(n: Node, parent_op: str | None) -> str | None:
+        for c in n.children:
+            r = _check(c, n.op)
+            if r:
+                return r
         if n.op == "roc" and not n.children[0].is_leaf() \
-                and n.children[0].op in ("rank_cs", "zscore"):
+                and n.children[0].op in ("rank_cs", "zscore") \
+                and parent_op not in ("rank_cs", "zscore"):
             return f"roc_on_cs({n.children[0].op})"
-    return None
+        return None
+    return _check(node, None)
 
 
 def _ts_nesting(node: Node) -> tuple[str, str] | None:

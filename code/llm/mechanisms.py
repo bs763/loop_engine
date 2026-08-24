@@ -198,6 +198,13 @@ def build_generation_prompt(mech: dict, fields: list[str]) -> str:
 【硬规则】
 - s-表达式嵌套,深度至少 2 层、最多 4 层:顶层算子的子节点必须是算子而非裸字段
   (zscore(ma(x,20)) 合法;max(x,20)、add(x,y) 这类单层非法);
+- 以下结构会被确定性审查拒绝,生成时规避:
+  · roc 的直接子节点是 rank_cs/zscore 时,roc 输出必须再被 rank_cs/zscore 包装
+    (rank_cs(roc(rank_cs(x),20))=排名动量,合法;裸用于 add/sub/std 等非法——分母趋零爆炸);
+  · add/sub 两操作数量纲不同(如字段水平值 vs 比率/排名)→ 拒,组合前先各自 rank_cs/zscore;
+  · 平滑算子(ma/std)直接嵌套平滑算子(ma(ma(·))、std(ma(·)))→ 拒(统计量堆叠滞后);
+  · 极值算子(max/min)直接嵌套极值算子(max(min(·)))→ 拒;
+  · add/sub/mul/div 两个子树完全相同 → 拒(退化为常数/冗余);
 - add/sub 不得跨量纲(禁止 add(close, volume) 这类);只用上面字段;
 - 时序算子必须带第二参数窗口 n,禁止省略(如 rank_ts(x) 非法,应为 rank_ts(x, 20)),
   且各算子窗口范围不同:ma 3-250,std/max/min/rank_ts 5-120,roc/delta 3-60,skew 10-120;

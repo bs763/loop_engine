@@ -157,14 +157,30 @@ def test_single_smoothing_and_gap_nesting_pass():
     assert t2 is not None, reason2
 
 
-# ---------------- roc 语义闸(2026-08-18)----------------
+# ---------------- roc 语义闸(2026-08-18 建;2026-08-24 用户放宽「必须包装」)----------------
 
 def test_reject_roc_on_cs():
-    """roc 直接作用于截面算子(rank_cs 有 [0,1] 下界、zscore 过零)→ 分母不良定义,拒。"""
+    """roc 直接作用于截面算子且【裸用】(add/sub 分支、嵌套 std 等)→ 分母不良定义,拒。"""
     t, reason = apply(parse("add(rank_cs(log_mv), roc(rank_cs(log_mv), 60))"))
     assert t is None and "roc_on_cs" in reason
-    t2, reason2 = apply(parse("zscore(roc(zscore(adj_close), 20))"))
+    t2, reason2 = apply(parse("std(roc(zscore(adj_close), 20), 40)"))
     assert t2 is None and "roc_on_cs" in reason2
+
+
+def test_wrapped_roc_on_cs_passes():
+    """有界包装放行(2026-08-24 用户拍板):rank_cs/zscore(roc(截面,n)) = 排名动量,
+    库内 Top2 即此结构(add(max(rank_cs(log_amount),20), rank_cs(roc(rank_cs(log_mv),10))))。"""
+    t, reason = apply(parse("zscore(roc(zscore(adj_close), 20))"))
+    assert t is not None, reason
+    t2, reason2 = apply(parse(
+        "add(max(rank_cs(log_amount), 20), rank_cs(roc(rank_cs(log_mv), 10)))"))
+    assert t2 is not None, reason2
+    # 包装后的 roc 可作为有界分支参与 add(库内 Top2 同款)
+    t3, reason3 = apply(parse("add(rank_cs(roc(rank_cs(ret), 20)), rank_cs(bm))"))
+    assert t3 is not None, reason3
+    # 反例:roc 的直接父是 add(裸用,即使整树外层有 rank_cs)→ 仍拒
+    t4, reason4 = apply(parse("rank_cs(add(roc(rank_cs(ret), 20), rank_cs(bm)))"))
+    assert t4 is None and "roc_on_cs" in reason4
 
 
 def test_roc_on_levels_and_delta_on_rank_pass():
