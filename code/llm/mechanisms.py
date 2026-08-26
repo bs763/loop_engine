@@ -202,6 +202,10 @@ def build_generation_prompt(mech: dict, fields: list[str]) -> str:
 【硬规则】
 - s-表达式嵌套,深度至少 2 层、最多 4 层:顶层算子的子节点必须是算子而非裸字段
   (zscore(ma(x,20)) 合法;max(x,20)、add(x,y) 这类单层非法);
+- 【如何表达反向】没有 neg 算子、禁止数字常数(mul(-1,·)、div(1,·) 均非法):
+  要表达「X 高且 ps/bm 低」这类反向组合,用 sub(标准化(X), 标准化(ps)) ——反向项
+  放 sub 的第二个操作数即可;若整个因子只是单一字段的反向,直接用原字段,
+  引擎会按 IC 符号自动翻转方向,无需任何取反;
 - 以下结构会被确定性审查拒绝,生成时规避:
   · roc 的直接子节点是 rank_cs/zscore 时,roc 输出必须再被 rank_cs/zscore 包装
     (rank_cs(roc(rank_cs(x),20))=排名动量,合法;裸用于 add/sub/std 等非法——分母趋零爆炸);
