@@ -2,3 +2,5 @@
 {"iter": 520, "expr": "min(roc(div(adj_low, ps), 40), 80)", "accept": false, "raw": "REJECT: ps 市销率可能为零导致除零错误。"}
 {"iter": 522, "expr": "rank_cs(sub(rank_cs(bm), rank_cs(roc(adj_close, 20))))", "accept": false, "raw": "REJECT: 2020年多空收益接近零(0.6%)，存在单年失效风险。"}
 {"iter": 525, "expr": "rank_cs(rank_ts(delta(zscore(bm), 20), 40))", "accept": false, "raw": "REJECT: bm分母市值可能为零导致除零错误。"}
+{"iter": 525, "expr": "std(mul(min(log_volume, 20), rank_cs(zscore(log_volume))), 80)", "accept": false, "raw": "REJECT: 2023年多空收益仅1.8%接近零，存在单年依赖风险。", "readmit": true}
+{"iter": 525, "expr": "rank_cs(rank_ts(delta(zscore(bm), 20), 40))", "accept": false, "raw": "REJECT: 逐年多空收益集中于 2018/2019 两年(合计 40.4%)，2020-2023 年收益显著衰减且接近零(均值 7.8%)，存在严重的单年依赖风险。", "readmit": true}

@@ -131081,8 +131081,8 @@
   "std(mul(min(FLD, N), rank_cs(zscore(FLD))), N)": {
    "fails": 1,
    "occupied": 0,
-   "stored": 0,
-   "last_iter": 517,
+   "stored": 1,
+   "last_iter": 525,
    "top_rules": {
     "16": 1
    }
