@@ -17,3 +17,5 @@
 {"iter": 536, "expr": "add(ma(zscore(std(amplitude, 20)), 250), rank_cs(skew(adj_close, 40)))", "accept": true, "raw": "ACCEPT: 逐年多空分布健康（最大28.4%未超其余年份总和、无过半数近零、多头超额5.44%>1%）；无除零、极端窗口或平滑/极值套叠，两侧均为截面标准化/排名量纲可加。"}
 {"iter": 538, "expr": "add(add(zscore(rank_cs(log_mv)), zscore(skew(intraday, 80))), zscore(std(log_amount, 20)))", "accept": true, "raw": "ACCEPT: 三项均经截面zscore无量纲化且量纲匹配，无div/roc除零风险，窗口20/80合理，无平滑/极值直接嵌套；逐年多空各年为正且不集中于单年，经济含义（市值、日内偏度、成交额波动）自洽。"}
 {"iter": 539, "expr": "add(rank_cs(ma(roe, 40)), zscore(skew(intraday, 40)))", "accept": true, "raw": "ACCEPT: 40日窗口合理且两子项均截面标准化后可加，逐年多空未单年集中、近零年份未过半且多头超额>1%，无div/roc除零或平滑套平滑。"}
+{"iter": 542, "expr": "add(add(rank_cs(skew(adj_close, 40)), rank_cs(skew(intraday, 40))), rank_cs(sub(down_shadow, overnight)))", "accept": true, "raw": "ACCEPT: 无除零或极端窗口风险，三路 rank_cs 后量纲统一，经济学含义自洽，逐年多空分布健康且无单年依赖。"}
+{"iter": 542, "expr": "add(add(rank_cs(ps), rank_cs(skew(adj_close, 40))), rank_cs(std(zscore(log_amount), 5)))", "accept": true, "raw": "ACCEPT: 无除零、窗口与量纲合理，平滑/极值无直接嵌套；逐年多空核验最大单年33.6%未超其余总和且无年份接近零、多头超额3.89%>1%。"}
