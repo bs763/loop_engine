@@ -19,3 +19,11 @@
 {"iter": 539, "expr": "add(rank_cs(ma(roe, 40)), zscore(skew(intraday, 40)))", "accept": true, "raw": "ACCEPT: 40日窗口合理且两子项均截面标准化后可加，逐年多空未单年集中、近零年份未过半且多头超额>1%，无div/roc除零或平滑套平滑。"}
 {"iter": 542, "expr": "add(add(rank_cs(skew(adj_close, 40)), rank_cs(skew(intraday, 40))), rank_cs(sub(down_shadow, overnight)))", "accept": true, "raw": "ACCEPT: 无除零或极端窗口风险，三路 rank_cs 后量纲统一，经济学含义自洽，逐年多空分布健康且无单年依赖。"}
 {"iter": 542, "expr": "add(add(rank_cs(ps), rank_cs(skew(adj_close, 40))), rank_cs(std(zscore(log_amount), 5)))", "accept": true, "raw": "ACCEPT: 无除零、窗口与量纲合理，平滑/极值无直接嵌套；逐年多空核验最大单年33.6%未超其余总和且无年份接近零、多头超额3.89%>1%。"}
+{"iter": 546, "expr": "add(add(zscore(rank_cs(intraday)), zscore(skew(intraday, 80))), zscore(std(log_amount, 20)))", "accept": true, "raw": "ACCEPT: 无除零与极端窗口问题，zscore标准化后量纲一致，逐年多空无单年集中或空头独撑，经济学含义自洽。"}
+{"iter": 547, "expr": "add(rank_cs(ma(roe, 40)), sub(zscore(roc(bm, 20)), zscore(skew(intraday, 40))))", "accept": false, "raw": "REJECT: roc(bm,20) 以20日前账面市值比为分母，bm 可过零/趋零，存在除零或极端变化率风险；逐年多空核对无单年依赖（2018最大38.2%未超其余总和、无明显近零年），但边界问题不可收。"}
+{"iter": 549, "expr": "add(add(rank_cs(log_mv), rank_cs(skew(adj_close, 40))), rank_cs(std(zscore(log_amount), 5)))", "accept": true, "raw": "ACCEPT: 逐年核对无单年集中(2019+34.1%<其余总和+67.0%)、仅2021|+1.9%|<2%未过半数、多头超额+4.48%>1%；三项rank_cs线性组合无量纲/除零，且无平滑套平滑或极值套极值。"}
+{"iter": 551, "expr": "mul(zscore(roc(div(div_yield, adj_low), 60)), max(sub(rank_cs(bm), min(roa, 40)), 120))", "accept": false, "raw": "REJECT: roc 直接作用于 div(div_yield,adj_low)，div_yield 常见为 0 使滞后项为 0 时除零产生非有限值；逐年多空无单年依赖或空头独撑问题，但除零不可接受。"}
+{"iter": 551, "expr": "add(add(rank_cs(ma(roa, 120)), rank_cs(skew(adj_close, 40))), rank_cs(std(log_amount, 20)))", "accept": true, "raw": "ACCEPT: 无除零/极端窗口/量纲错配，三子项经rank_cs量纲一致且未触发平滑或极值嵌套；逐年多空无单年集中(2019+30.3%<其余+54.4%)、无零收益依赖。"}
+{"iter": 552, "expr": "sub(zscore(std(log_amount, 20)), zscore(bm))", "accept": true, "raw": "ACCEPT: 无除零/量纲错配与过度平滑问题，zscore后无量纲可相减；经济含义为成交额波动暴露减价值暴露；逐年多空最大单年未超其余年份总和、无年份近零且多头超额>1%，非空头独撑。"}
+{"iter": 553, "expr": "std(mul(min(log_volume, 20), rank_cs(log_amount)), 80)", "accept": true, "raw": "ACCEPT: 无除零/极端窗口/量纲错配，经济含义为成交额截面排名加权的20日低量波动，逐年多空核对无单年集中、零年依赖或多头独撑。"}
+{"iter": 553, "expr": "add(add(zscore(log_amount), zscore(rank_cs(intraday))), zscore(std(log_amount, 20)))", "accept": true, "raw": "ACCEPT: 无除零/量纲错配，20日窗口合理且非平滑嵌套；逐年多空最大52.8%未超其余年份总和、无年份接近零，多头超额5.04%非空头独撑。"}

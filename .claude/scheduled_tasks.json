@@ -1,13 +1,3 @@
 {
-  "tasks": [
-    {
-      "id": "8ef0b904",
-      "cron": "2 18 26 8 *",
-      "prompt": "恢复 factor_loop_engine 因子挖掘 loop 链式调度(18:00 高峰暂停结束的唤醒)。项目根 C:\\Users\\Administrator\\Desktop\\codewhale\\factor_loop_engine。严格按项目 skill .claude\\skills\\factor-loop-orchestrator.md 执行(每轮六步 + 第6步【完整汇报格式,逐项必填,含终审拒详情块】+ 四道防线边界),要点:1) lib_status 读状态;2) uv run code/run_round_cli.py --n 100 跑一轮(带 >> output/loop.log 2>&1 重定向);3) 完整格式汇报(模式行/漏斗五数/LLM健康含过审查按源/终审通过拒错/OOS体检/双口径相关性含灰区/入库替换明细含IS+OOS指标/触发项逐项:相关性、回测异常准确数字、新闸、族记忆、lessons、终审拒详情);4) 诊断:stuck≥15 停机;OOS ALERT 立即停+汇报;回测异常≥10→查并发;5) 观察基本面因子与 PnL 口径灰区;6) 完成一轮立即链下一轮。查北京时间用 uv run python -c \"from datetime import datetime; print(datetime.now())\" 或 PowerShell(Git Bash TZ 不生效差8小时!);进入高峰窗口(每天含周末 9-12、14-18)则停,CronCreate 排 durable 一次性唤醒(12:02/18:02,当天日期,recurring:false)传入本提示词原样续链;夜间≥21:00 首轮做 git 备份(add -A + add -f output/checkpoint.json + commit + push);高风险动作先问用户。当前待用户裁决:轮527 Calmar7.06 候选(建议豁免readmit)与 roc(rank_cs) 包装规则收紧与否——若用户已裁决则执行。",
-      "createdAt": 1787720509821,
-      "createdBySessionId": "0472ed8b-fae8-4bba-a42a-95fe02296d71",
-      "createdByPid": 17140,
-      "createdByProcStart": "134320235155214381"
-    }
-  ]
+  "tasks": []
 }
