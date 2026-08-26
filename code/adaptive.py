@@ -53,11 +53,48 @@ def dynamic_budget(history: list[dict], base: EvolveConfig | None = None,
 
 def budget_mode(reason: str) -> str:
     """把 dynamic_budget 的理由映射为模式标签(探索/深挖/基线),供汇报与 SIGNALS。"""
-    if reason.startswith("stuck"):
+    if reason.startswith("stuck") or reason.startswith("forced-explore"):
         return "探索"
-    if reason.startswith("yielding"):
+    if reason.startswith("yielding") or reason.startswith("forced-exploit"):
         return "深挖"
     return "基线"
+
+
+def forced_budget(mode: str | None, llm_share: float | None = None,
+                  base: EvolveConfig | None = None) -> tuple[EvolveConfig, str]:
+    """强制预算(用户 2026-08-26:指定轮数全探索+LLM 配额上调,跑完不带参数自动回自适应)。
+
+    mode="explore" 施加探索偏置(+随机+LLM,-变异-扰动);llm_share 直接设定 LLM 占比,
+    其余四维按比例缩放;归一化保证和为 1。
+    """
+    base = base or EvolveConfig()
+    b = {k: getattr(base, k) for k in _BUDGET_KEYS}
+    if mode == "explore":
+        b["random"] += 0.10; b["llm"] += 0.10
+        b["mutate"] -= 0.10; b["perturb"] -= 0.10
+    elif mode == "exploit":
+        b["mutate"] += 0.05; b["crossover"] += 0.05
+        b["random"] -= 0.05; b["llm"] -= 0.05
+    if llm_share is not None:
+        llm_share = min(max(llm_share, 0.0), 1.0)
+        others = [k for k in _BUDGET_KEYS if k != "llm"]
+        old_rest = sum(b[k] for k in others)
+        if old_rest <= 0:
+            for k in others:
+                b[k] = 0.0
+            b["mutate"] = b["crossover"] = (1.0 - llm_share) / 2
+        else:
+            scale = (1.0 - llm_share) / old_rest
+            for k in others:
+                b[k] *= scale
+        b["llm"] = llm_share
+    for k in _BUDGET_KEYS:
+        b[k] = max(0.0, b[k])
+    tot = sum(b.values())
+    cfg = EvolveConfig(**{k: round(b[k] / tot, 4) for k in _BUDGET_KEYS})
+    tag = (mode or "baseline") + (f",llm={llm_share}" if llm_share is not None else "")
+    reason = f"forced-{tag}(用户指定轮数,跑完自动回自适应)"
+    return cfg, reason
 
 
 def round_signals(checkpoint: Checkpoint) -> dict:

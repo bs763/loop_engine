@@ -101,6 +101,10 @@ def main() -> None:
                     help="alphalab yaml 配置(默认项目专用 config/alphalab.yaml)")
     ap.add_argument("--force", action="store_true",
                     help="忽略高峰时段暂停(默认 9-12/14-18 跳过;仅用户显式要求时用)")
+    ap.add_argument("--mode", choices=["explore", "exploit"], default=None,
+                    help="强制演化模式(默认自适应;explore=探索偏置,exploit=利用偏置)")
+    ap.add_argument("--llm", type=float, default=None,
+                    help="强制 LLM 生成配额占比(其余四维按比例缩放;默认自适应)")
     args = ap.parse_args()
 
     if _in_peak_hours() and not args.force:
@@ -109,6 +113,9 @@ def main() -> None:
 
     cp = Checkpoint.load(args.checkpoint)            # 断点续跑
     cfg, breason = dynamic_budget(cp.history)        # 自适应预算(M3)
+    if args.mode or args.llm is not None:            # 用户指定覆盖(跑完不带参数自动回自适应)
+        from adaptive import forced_budget
+        cfg, breason = forced_budget(args.mode, args.llm, base=cfg)
     print(f"BUDGET: 【{budget_mode(breason)}】{breason} | mutate/crossover/perturb/random/llm = "
           f"{cfg.mutate}/{cfg.crossover}/{cfg.perturb}/{cfg.random}/{cfg.llm}")
 
