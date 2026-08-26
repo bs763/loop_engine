@@ -214,3 +214,10 @@ def test_parse_verdict_first_occurrence():
     assert M.parse_verdict("若窗口不足则 ACCEPT 否则 REJECT")[0] is True
     assert M.parse_verdict("接受:结构合理")[0] is True                      # 中文输出 fail-open
     assert M.parse_verdict("")[0] is True
+
+
+def test_review_prompt_atomic_field_declaration():
+    """终审误判修正(2026-08-25,2/4 误判同源):prompt 声明字段为原子数据列,
+    不得按字段名构成臆测除法(bm 被读成 book÷market 的轮 525 误判)。"""
+    p = M.build_review_prompt(parse("rank_cs(rank_ts(delta(zscore(bm), 20), 40))"))
+    assert "原子数据列" in p and "臆测除法" in p

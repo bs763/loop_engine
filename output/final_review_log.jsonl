@@ -1,1 +1,4 @@
 {"iter": 517, "expr": "std(mul(min(log_volume, 20), rank_cs(zscore(log_volume))), 80)", "accept": false, "raw": "REJECT: min(log_volume, 20) 将对数成交量截断为固定数值 20，破坏了数据的连续性与经济学含义，且与算子语义中“min 为滚动窗口最小值”的定义冲突。"}
+{"iter": 520, "expr": "min(roc(div(adj_low, ps), 40), 80)", "accept": false, "raw": "REJECT: ps 市销率可能为零导致除零错误。"}
+{"iter": 522, "expr": "rank_cs(sub(rank_cs(bm), rank_cs(roc(adj_close, 20))))", "accept": false, "raw": "REJECT: 2020年多空收益接近零(0.6%)，存在单年失效风险。"}
+{"iter": 525, "expr": "rank_cs(rank_ts(delta(zscore(bm), 20), 40))", "accept": false, "raw": "REJECT: bm分母市值可能为零导致除零错误。"}

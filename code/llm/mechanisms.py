@@ -237,6 +237,9 @@ IC={g('ic_mean'):+.4f} ICIR={g('icir'):.2f} 夏普={g('ls_sharpe'):.2f} Calmar={
 
 【表达式】{node.to_str()}
 【字段含义】{FIELD_MEANINGS}
+上述字段均为**原子数据列**(已预计算,无除零风险)——不得按字段名的构成臆测除法
+(如 bm 是整列载入的账面市值比,表达式里并没有 book÷market 的运算);
+仅当表达式本身含 div(·)、或 roc 直接作用于可能过零/趋零的子表达式时,才评估除零风险。
 【算子语义】时序算子(ma/std/max/min/roc/delta/skew/rank_ts)的第二参数一律是**滚动窗口天数**,
 不是数值截断:max(x, 40) = x 的 40 日滚动最大值;min(log_volume, 20) = 对数成交量的
 20 日滚动最小值(**不是**把值截断为 20);roc(x, n) = x 的 n 日变化率。
