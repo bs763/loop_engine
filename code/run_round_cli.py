@@ -176,6 +176,15 @@ def main() -> None:
           f"stored={stats.stored_total} new={stats.n_pass_filters} "
           f"elapsed={stats.elapsed_sec/60:.1f}min workers={args.workers}"
           + (f" resampled={stats.n_resampled}" if stats.n_resampled else ""))
+    # 终审拒详情(用户 2026-08-25 强制项:被拒因子表达式 + LLM 拒因 + IS 各项表现,供人工裁决)
+    for v in stats.final_vetoes:
+        annual = ", ".join(f"{y}:{r:+.1%}" for y, r in v["annual"].items())
+        print("终审拒(待裁决):")
+        print(f"  表达式: {v['expr']}")
+        print(f"  LLM拒因: {v['reason']}")
+        print(f"  IS: IC={v['ic']:+.4f} ICIR={v['icir']:.2f} 夏普={v['sharpe']:.2f} "
+              f"Calmar={v['calmar']:.2f} 多头超额={v['long_excess']:+.2%} 单调={v['monotonicity']:.2f}")
+        print(f"  逐年: {annual}")
     from lib_status import oos_health, corr_report_lines
     print(oos_health(cp.stored_factors))   # OOS 崩塌跳闸(用户 2026-08-18:ALERT → 停 loop 汇报)
     for line in corr_report_lines(cp.stored_factors):   # 双口径相关+灰区(观察,不做准入)

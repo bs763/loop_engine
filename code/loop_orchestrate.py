@@ -52,6 +52,7 @@ class RoundStats:
     n_backtested: int
     n_pass_filters: int         # 入库
     stored_total: int
+    final_vetoes: list = field(default_factory=list)   # 终审拒详情(用户 2026-08-25:进每轮汇报供裁决)
     n_resampled: int = 0            # 死骨架重采样替换数(失败模式库回流)
     gen_src_total: dict = field(default_factory=dict)    # 各生成源的新测候选数 {op: n}
     gen_src_pass_review: dict = field(default_factory=dict)  # 各生成源过审查数(质量观测,用户 2026-08-24)
@@ -136,6 +137,7 @@ def run_round(*, checkpoint: Checkpoint, evolver: Evolver, evaluator: Evaluator,
     t0 = time.perf_counter()
     new_iter = checkpoint.iteration + 1
     reject_records: list[dict] = []
+    final_vetoes: list[dict] = []      # 终审拒详情(表达式+拒因+IS指标,进每轮汇报)
     # ---- 1) 生成(逻辑隔离:此处无任何回测指标)----
     if parents is None:
         parents = [parse(f["expr"]) for f in checkpoint.stored_factors if "expr" in f]
@@ -270,6 +272,15 @@ def run_round(*, checkpoint: Checkpoint, evolver: Evolver, evaluator: Evaluator,
                 fam = family_of(h)
                 if fam and not is_metric_reason(why):
                     add_family_note(fam, why[:120])
+                # 终审拒详情收集(用户 2026-08-25:表达式+拒因+IS各项表现进汇报,供人工裁决)
+                annual = getattr(m, "annual_ls_return", None) or {}
+                final_vetoes.append({
+                    "expr": node.to_str(), "reason": why[:200],
+                    "ic": m.ic_mean, "icir": m.icir, "sharpe": m.ls_sharpe,
+                    "calmar": m.calmar, "long_excess": m.long_excess_annual,
+                    "monotonicity": m.monotonicity,
+                    "annual": {str(y): v for y, v in sorted(annual.items())},
+                })
                 fr = FilterResult(passed=False, reasons=[f"16.LLM终审拒:{why[:80]}"])
         if fr.passed:
             # OOS 样本外指标(用户 2026-08-17):入库时算一次存档,**只报告、绝不参与筛选**
@@ -364,6 +375,7 @@ def run_round(*, checkpoint: Checkpoint, evolver: Evolver, evaluator: Evaluator,
         iteration=checkpoint.iteration, n_generated=len(candidates), n_tested=n_unique,
         n_pass_review=len(reviewed), n_backtested=len(reviewed),
         n_pass_filters=len(new_exprs), stored_total=len(checkpoint.stored_factors),
+        final_vetoes=final_vetoes,
         n_resampled=n_resampled,
         gen_src_total=dict(src_total), gen_src_pass_review=dict(src_pass),
         elapsed_sec=time.perf_counter() - t0,

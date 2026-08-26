@@ -40,6 +40,9 @@ description: factor_loop_engine 的连续调度编排器例程。链式触发(�
      · 新闸拦截: 覆盖率/过度平滑/极值嵌套 各N(异常放量才展开)
      · 族记忆: family_notes 新增条目(原文)或"无新增"
      · lessons: 新条目或"无"
+     · 终审拒(用户 2026-08-25 强制项):每轮若有 #16 终审拒绝,逐个贴【表达式 + LLM拒因原文
+       + IS 各项指标(IC/ICIR/夏普/Calmar/多头超额/单调性/逐年多空)】供用户裁决——
+       误拒候选可经 code/readmit.py 重走管线,用户可豁免 #16 入库
    ```
    模式取自 BUDGET 行【】标签(探索=连续5轮0入库加随机+LLM;深挖=持续产出加变异+交叉;基线=无倾向)。
    数据来源:loop.log 末尾各行 + checkpoint 最新因子 + git 上一版 checkpoint(被替换者) + lib_status(相关/OOS)。

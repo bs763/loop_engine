@@ -111,6 +111,10 @@ def test_llm_final_veto_blocks_store(tmp_path):
                   evaluator=AlwaysPass(), field_panels=panels, fsa=FSA(), fields=FIELDS,
                   n_candidates=40, llm_reviewer=MockProvider(responder=lambda p: "REJECT: 测试否决"))
     assert s.n_pass_filters == 0 and len(cp.stored_factors) == 0
+    # 终审拒详情进 RoundStats(用户 2026-08-25 强制汇报项:表达式+拒因+IS指标供裁决)
+    assert len(s.final_vetoes) >= 1
+    v = s.final_vetoes[0]
+    assert v["expr"] and "测试否决" in v["reason"] and "ic" in v and "annual" in v
     # 放行版
     cp2 = Checkpoint(tmp_path / "cp_ok.json")
     s2 = run_round(checkpoint=cp2, evolver=Evolver(FIELDS, rng=np.random.default_rng(5)),
