@@ -12,3 +12,5 @@
 {"iter": 528, "expr": "add(add(rank_cs(intraday), rank_cs(skew(adj_close, 40))), rank_cs(std(zscore(log_amount), 5)))", "accept": true, "raw": "ACCEPT: 无量纲错配、除零或窗口问题；逐年最大34.9%未超其余年份总和、无|y|<2%年份且多头超额1.64%>1%，指标核对通过。"}
 {"iter": 530, "expr": "add(add(rank_cs(adj_close), rank_cs(skew(adj_close, 40))), rank_cs(std(zscore(log_amount), 5)))", "accept": true, "raw": "ACCEPT: 三项均为横截面排名后相加，量纲统一且无除零/平滑嵌套，窗口合理；逐年多空最大27.3%未超其余年份总和、无|y|<2%年份，多头超额3.08%>1%，通过。"}
 {"iter": 534, "expr": "rank_cs(roc(rank_cs(adj_close), 20))", "accept": false, "raw": "REJECT: roc 直接作用于 rank_cs(adj_close)，截面排名分位数可能为 0/趋零，变化率分母有除零/极端值风险；逐年多空核对无单年集中、无近零年、多头超额 4.18%>1%，非指标拒。"}
+{"iter": 535, "expr": "rank_cs(roc(rank_cs(adj_high), 20))", "accept": false, "raw": "REJECT: roc 直接作用于 rank_cs(adj_high)，截面排名最小值可为 0/趋近 0，20 日前分母可能为零或极小，存在除零/数值不稳定风险。", "readmit": true}
+{"iter": 535, "expr": "add(add(max(skew(ret, 120), 20), zscore(skew(adj_close, 60))), zscore(skew(rank_cs(overnight), 80)))", "accept": true, "raw": "ACCEPT: 三项均为无量纲偏度/截面标准化量，窗口60-120充足且无平滑套平滑或极值套极值；IS逐年多空最大39.2%未超其余年份总和105.8%、无接近零年份、多头超额7.53%>1%。", "readmit": true}

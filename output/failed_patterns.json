@@ -10809,8 +10809,8 @@
   "rank_cs(roc(rank_cs(FLD), N))": {
    "fails": 8,
    "occupied": 1,
-   "stored": 0,
-   "last_iter": 534,
+   "stored": 1,
+   "last_iter": 535,
    "top_rules": {
     "12": 3,
     "2": 5,
@@ -135354,8 +135354,8 @@
   "add(add(max(skew(FLD, N), N), zscore(skew(FLD, N))), zscore(skew(rank_cs(FLD), N)))": {
    "fails": 1,
    "occupied": 0,
-   "stored": 0,
-   "last_iter": 527,
+   "stored": 1,
+   "last_iter": 535,
    "top_rules": {
     "16": 1
    }

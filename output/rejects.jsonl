@@ -20089,3 +20089,5 @@
 {"iter": 535, "hash": "1d4b162ba4f8ae3c", "expr": "rank_cs(mul(zscore(roe), zscore(overnight)))", "disp": "filter_reject", "reasons": ["1.|IC|=0.0067≤0.03", "14.ICIR=0.209≤0.3", "2.多空≤0的年份:[2018, 2019, 2020, 2021, 2022, 2023]", "3.整体多空年化=-0.122≤0", "4.整体夏普=-5.377≤0.5", "5.末年夏普=-8.920≤0.5", "6.Calmar=-0.245≤1.0", "7.近9月多空=-0.121≤0", "8.近12月多空=-0.151≤0", "12.多头超额年化=-0.143≤0.0", "13.单调性=0.370≤0.85"]}
 {"iter": 535, "hash": "6f59a5999c4ec9ee", "expr": "std(add(roc(overnight, 5), zscore(rank_cs(roe))), 120)", "disp": "backtest_error", "reasons": ["ValueError: 覆盖率塌陷(2018-12 月均0%<本地中位0%×60%)"]}
 {"iter": 535, "hash": "ab1acfd9a198b74e", "expr": "add(add(rank_cs(adj_close), rank_cs(ma(intraday, 120))), rank_cs(skew(adj_close, 40)))", "disp": "filter_reject", "reasons": ["9.IC相关性=0.811≥0.7"]}
+{"iter": 535, "hash": "c1a5b2638efb7733", "expr": "rank_cs(roc(rank_cs(adj_high), 20))", "disp": "stored", "reasons": ["readmit: 终审误拒修正后重准入"]}
+{"iter": 535, "hash": "1296c5d177b38f89", "expr": "add(add(max(skew(ret, 120), 20), zscore(skew(adj_close, 60))), zscore(skew(rank_cs(overnight), 80)))", "disp": "stored", "reasons": ["readmit-force(用户豁免#16): 替换3"]}
