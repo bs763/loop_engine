@@ -221,3 +221,14 @@ def test_review_prompt_atomic_field_declaration():
     不得按字段名构成臆测除法(bm 被读成 book÷market 的轮 525 误判)。"""
     p = M.build_review_prompt(parse("rank_cs(rank_ts(delta(zscore(bm), 20), 40))"))
     assert "原子数据列" in p and "臆测除法" in p
+
+
+def test_review_verdict_counters():
+    """终审通过/拒分开计数(2026-08-25:ok 只计调用成功,曾把拒绝误读为通过)。"""
+    prov = MockProvider(response="REJECT: div 分母趋零")
+    M.review_expression(prov, parse("div(close, volume)"))
+    assert getattr(prov, "llm_rev_ok") == 1 and getattr(prov, "llm_rev_reject") == 1
+    assert getattr(prov, "llm_rev_accept", 0) == 0
+    prov2 = MockProvider(response="ACCEPT: 合理")
+    M.review_expression(prov2, parse("zscore(ma(close, 20))"))
+    assert getattr(prov2, "llm_rev_accept") == 1 and getattr(prov2, "llm_rev_reject", 0) == 0

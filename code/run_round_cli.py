@@ -161,10 +161,11 @@ def main() -> None:
         g = {k: _cnt(gen_provider, k) for k in ("llm_gen_ok", "llm_gen_bad_output",
                                                 "llm_gen_api_error", "llm_gen_fallback")}
         r_ok, r_err = _cnt(rev_provider, "llm_rev_ok"), _cnt(rev_provider, "llm_rev_error")
+        r_acc, r_rej = _cnt(rev_provider, "llm_rev_accept"), _cnt(rev_provider, "llm_rev_reject")
         if any(g.values()) or r_ok or r_err:
             print(f"LLM: 生成 ok{g['llm_gen_ok']}/解析失败{g['llm_gen_bad_output']}/"
                   f"API错{g['llm_gen_api_error']}/兜底{g['llm_gen_fallback']}"
-                  f" | 终审 ok{r_ok}/错{r_err}")
+                  f" | 终审 通过{r_acc}/拒{r_rej}/错{r_err}")
         # 按生成源的过审查率(用户 2026-08-24:健侧 LLM 生成质量——ok 只说明合法,
         # 过审查才说明结构质量;llm 与遗传各源并排便于对比)
         if stats.gen_src_total:

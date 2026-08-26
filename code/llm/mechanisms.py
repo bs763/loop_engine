@@ -378,7 +378,10 @@ def review_expression(provider, node: Node, temperature: float = 0.1,
         _bump(provider, "llm_rev_error")
         return True, "LLM 审查不可用,放行"
     _bump(provider, "llm_rev_ok")
-    return parse_verdict(text)
+    accept, reason = parse_verdict(text)
+    # 通过/拒分开计数(2026-08-25:健康行的 ok 只计调用成功,曾致汇报把拒绝误读为通过)
+    _bump(provider, "llm_rev_accept" if accept else "llm_rev_reject")
+    return accept, reason
 
 
 def make_evolve_llm_hook(provider, rng: np.random.Generator | None = None,
