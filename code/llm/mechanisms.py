@@ -135,17 +135,21 @@ MECHANISMS: list[dict] = [
     {"id": "cs_value", "category": "cs", "name": "价值与估值修复",
      "prototypes": ["低估值溢价", "估值压缩后的修复动量", "估值与质量背离"],
      "hint": "便宜的好公司:BM/PS 低估溢价、估值分位的修复动量、估值与盈利能力的背离"
-             "(质量调整价值——便宜且赚钱的比单纯便宜的可靠)。",
+             "(质量调整价值)。【重要】库内已验证的可行形态是【基本面×价量混血】:如 "
+             "add(rank_cs(ma(roe,120)), rank_cs(skew(adj_close,40))) —— 基本面分支 + 价量"
+             "分支各自由 rank_cs/zscore 标准化后相加;纯基本面结构很难全过指标关,优先混血。",
      "field_hints": ["bm", "ps", "div_yield"]},
     {"id": "cs_quality", "category": "cs", "name": "质量溢价与盈利改善",
      "prototypes": ["高盈利能力溢价", "盈利能力改善动量", "盈利与估值错配"],
-     "hint": "ROE/ROA 高且在改善的公司长期跑赢;注意盈利能力的变化(roc/ma 作用于季更阶梯"
-             "即改善动量)与盈利-估值错配(高质量但未被定价)。",
+     "hint": "ROE/ROA 高且在改善的公司长期跑赢;盈利能力的变化(roc/ma 作用于季更阶梯即"
+             "改善动量)与盈利-估值错配。【重要】优先【基本面×价量混血】:基本面分支 "
+             "rank_cs/ma(roe) + 价量分支 rank_cs(skew(·,40))/std(log_amount,20) 各自标准化后相加。",
      "field_hints": ["roe", "roa"]},
     {"id": "cs_growth", "category": "cs", "name": "基本面成长",
      "prototypes": ["成长溢价", "成长加速度", "成长与估值匹配"],
-     "hint": "净利润增速的水平与变化(增速的二阶=加速度);警惕高估值成长陷阱"
-             "(growth 高但 bm/ps 显示已被市场充分定价)。",
+     "hint": "净利润增速的水平与变化(增速的二阶=加速度);警惕高估值成长陷阱(growth 高但 "
+             "bm/ps 显示已被市场充分定价)。【重要】优先【基本面×价量混血】形态(各分支 "
+             "rank_cs/zscore 标准化后相加),纯基本面结构难以全过指标关。",
      "field_hints": ["profit_growth", "bm", "ps"]},
 ]
 
@@ -169,9 +173,9 @@ MECHANISM_BOOST: dict[str, float] = {
     "cs_flow_price": 2.0,       # 截面量价关系(log_volume/log_amount/adj_close)
     "cs_size_liquidity": 1.5,   # 截面规模流动性(log_mv/log_amount)
     # 基本面 3 族(2026-08-24 新信号源,最高优先拉取——突破单一价量源的相关性天花板)
-    "cs_value": 4.0,            # 价值与估值修复(bm/ps/div_yield)
-    "cs_quality": 4.0,          # 质量溢价与盈利改善(roe/roa)
-    "cs_growth": 4.0,           # 基本面成长(profit_growth)
+    "cs_value": 6.0,            # 价值与估值修复(bm/ps/div_yield;2026-08-26 4->6 用户要求加强)
+    "cs_quality": 6.0,          # 质量溢价与盈利改善(roe/roa;2026-08-26 4->6)
+    "cs_growth": 6.0,           # 基本面成长(profit_growth;2026-08-26 4->6)
 }
 
 
