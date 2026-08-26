@@ -92,7 +92,8 @@ def forced_budget(mode: str | None, llm_share: float | None = None,
         b[k] = max(0.0, b[k])
     tot = sum(b.values())
     vals = {k: round(b[k] / tot, 4) for k in _BUDGET_KEYS}
-    top = max(vals, key=vals.get)                    # 舍入残差吸收进最大项
+    pool = [k for k in vals if k != "llm"] if llm_share is not None else list(vals)
+    top = max(pool, key=vals.get)                    # 舍入残差吸收进最大项(保护显式 llm 占比)
     vals[top] = round(vals[top] + (1.0 - sum(vals.values())), 4)
     cfg = EvolveConfig(**vals)
     tag = (mode or "baseline") + (f",llm={llm_share}" if llm_share is not None else "")
