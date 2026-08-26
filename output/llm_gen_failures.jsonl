@@ -2,3 +2,19 @@
 {"mech": "cs_dispersion", "reason": "parse/validate: ValueError: 未知算子: abs", "raw": "rank_cs(div(std(ret, 20), ma(abs(ret), 20)))"}
 {"mech": "ts_vol_compress", "reason": "字段越界: ['close']", "raw": "rank_ts(div(std(close, 20), ma(std(close, 20), 20)), 20)"}
 {"mech": "cs_value", "reason": "parse/validate: IndexError: list index out of range", "raw": "add(rank_cs(ma(roe, 80)), rank_cs(ma(sub(bm, div(1, roe)), 40)))"}
+{"mech": "ts_vol_compress", "reason": "parse/validate: ValueError: 未知算子: z", "raw": "z(s-表达式):\nrank_cs(sub(rank_ts(std(adj_close, 20), 20), rank_ts(ma(std(adj_close, 20), 5), 20)))\n\n修正逻辑 (思考过程修正):\n上述结构使用了 `rank_ts(ma(...))`，这违反了 `ma` 输出不能被 `rank_ts` 直接嵌套的规则 (平滑->平滑/极值->平滑类逻辑)。\n为了体现“波动压缩后的释放”，应比较**当前波动**与**过去波动均值**。\n当前波动：`std(adj_close, 20)`\n过去波动均值：`ma(std(adj_close, 20), 20)` -> 这违反了 `std` 嵌套 `ma` 的规则。\n\n替代方案：使用不同周期。\n当前波动：`std(adj_close, 5)` (短期)\n过去波动：`std(adj_close, 20)` (长期)\n关系：短"}
+{"mech": "ts_vol_compress", "reason": "字段越界: ['close']", "raw": "zscore(sub(rank_ts(ma(std(close, 20), 5), 20), rank_cs(std(close, 20))))"}
+{"mech": "ts_breakout", "reason": "字段越界: ['high', 'low']", "raw": "rank_ts(sub(rank_cs(high), rank_cs(low)), 20)"}
+{"mech": "cs_growth", "reason": "parse/validate: IndexError: list index out of range", "raw": "add(rank_cs(delta(profit_growth, 20)), rank_cs(mul(roc(adj_close, 5), sub(1, rank_cs(ps)))))"}
+{"mech": "ts_candle", "reason": "字段越界: ['adj_open']", "raw": "sub(zscore(rank_ts(div(sub(adj_high, adj_low), sub(adj_close, adj_open)), 20)), zscore(up_shadow))"}
+{"mech": "cs_value", "reason": "parse/validate: IndexError: list index out of range", "raw": "add(rank_cs(div(1, sub(bm, ma(bm, 20)))), rank_cs(ma(roe, 60)))"}
+{"mech": "cs_growth", "reason": "parse/validate: IndexError: list index out of range", "raw": "add(rank_cs(ma(profit_growth, 10)), rank_cs(ma(div(1, bm), 20)))"}
+{"mech": "cs_value", "reason": "parse/validate: IndexError: list index out of range", "raw": "add(rank_cs(ma(div(1, ps), 40)), rank_ts(roc(adj_close, 20), 10))"}
+{"mech": "ts_vol_state", "reason": "parse/validate: ValueError: 未知算子: abs", "raw": "rank_ts(div(std(adj_close, 20), ma(abs(sub(adj_close, ma(adj_close, 20))), 20)), 20)"}
+{"mech": "ts_vol_compress", "reason": "字段越界: ['close']", "raw": "div(rank_cs(std(close, 20)), rank_cs(ma(std(close, 20), 20)))"}
+{"mech": "cs_growth", "reason": "字段越界: ['add']", "raw": "add"}
+{"mech": "cs_dispersion", "reason": "parse/validate: ValueError: 未知算子: abs", "raw": "zscore(sub(rank_cs(std(ret, 20)), rank_cs(ma(abs(ret), 20))))"}
+{"mech": "cs_growth", "reason": "parse/validate: IndexError: list index out of range", "raw": "add(rank_cs(roc(profit_growth, 20)), rank_cs(sub(rank_ts(ma(profit_growth, 20), 40)), zscore(ps)))"}
+{"mech": "ts_breakout", "reason": "字段越界: ['close']", "raw": "zscore(sub(roc(close, 20), rank_cs(ma(amplitude, 20))))"}
+{"mech": "ts_candle", "reason": "字段越界: ['close']", "raw": "zscore(sub(ma(close, 20), rank_cs(up_shadow)))"}
+{"mech": "ts_vol_state", "reason": "字段越界: ['high', 'low']", "raw": "rank_ts(zscore(sub(amplitude, div(up_shadow, sub(high, low)))), 20)"}
