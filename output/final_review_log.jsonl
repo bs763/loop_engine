@@ -15,3 +15,5 @@
 {"iter": 535, "expr": "rank_cs(roc(rank_cs(adj_high), 20))", "accept": false, "raw": "REJECT: roc 直接作用于 rank_cs(adj_high)，截面排名最小值可为 0/趋近 0，20 日前分母可能为零或极小，存在除零/数值不稳定风险。", "readmit": true}
 {"iter": 535, "expr": "add(add(max(skew(ret, 120), 20), zscore(skew(adj_close, 60))), zscore(skew(rank_cs(overnight), 80)))", "accept": true, "raw": "ACCEPT: 三项均为无量纲偏度/截面标准化量，窗口60-120充足且无平滑套平滑或极值套极值；IS逐年多空最大39.2%未超其余年份总和105.8%、无接近零年份、多头超额7.53%>1%。", "readmit": true}
 {"iter": 536, "expr": "add(ma(zscore(std(amplitude, 20)), 250), rank_cs(skew(adj_close, 40)))", "accept": true, "raw": "ACCEPT: 逐年多空分布健康（最大28.4%未超其余年份总和、无过半数近零、多头超额5.44%>1%）；无除零、极端窗口或平滑/极值套叠，两侧均为截面标准化/排名量纲可加。"}
+{"iter": 538, "expr": "add(add(zscore(rank_cs(log_mv)), zscore(skew(intraday, 80))), zscore(std(log_amount, 20)))", "accept": true, "raw": "ACCEPT: 三项均经截面zscore无量纲化且量纲匹配，无div/roc除零风险，窗口20/80合理，无平滑/极值直接嵌套；逐年多空各年为正且不集中于单年，经济含义（市值、日内偏度、成交额波动）自洽。"}
+{"iter": 539, "expr": "add(rank_cs(ma(roe, 40)), zscore(skew(intraday, 40)))", "accept": true, "raw": "ACCEPT: 40日窗口合理且两子项均截面标准化后可加，逐年多空未单年集中、近零年份未过半且多头超额>1%，无div/roc除零或平滑套平滑。"}

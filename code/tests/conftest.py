@@ -12,6 +12,10 @@ def _isolate_runtime_outputs(tmp_path):
     import loop_orchestrate as _lo
     old_out = _lo.OUTPUT_DIR
     _lo.OUTPUT_DIR = tmp_path          # 终审审计 final_review_log.jsonl 等
+    from llm import mechanisms as _M
+    old_genlog = _M._GEN_FAIL_LOG
+    _M._GEN_FAIL_LOG = tmp_path / "llm_gen_failures.jsonl"   # 生成失败审计
     yield
     fplib._reset(path=old, lib={})
     _lo.OUTPUT_DIR = old_out
+    _M._GEN_FAIL_LOG = old_genlog

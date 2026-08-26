@@ -277,10 +277,17 @@ def _first_balanced_sexpr(text: str) -> str | None:
     return None
 
 
-def extract_expression(text: str | None, allowed_fields: list[str] | None = None) -> Node | None:
-    """从 LLM 文本抽取合法表达式 Node;非法或字段越界返回 None。容错 fenced/带解释。"""
+def extract_expression(text: str | None, allowed_fields: list[str] | None = None,
+                       return_reason: bool = False) -> "Node | None | tuple":
+    """从 LLM 文本抽取合法表达式 Node;非法或字段越界返回 None。容错 fenced/带解释。
+
+    return_reason=True 时返回 (node, 原因) ——失败原因分类(用户 2026-08-26 要求可追溯):
+    无表达式 / parse失败(含自造算子) / validate失败 / 字段越界 / 裸叶子;成功原因=""。
+    """
+    def _ret(node, reason):
+        return (node, reason) if return_reason else node
     if not text:
-        return None
+        return _ret(None, "空输出")
     m = re.search(r"```(?:[a-zA-Z]*)?\s*(.*?)\s*```", text, re.S)  # 先取代码块
     candidate = m.group(1) if m else text
     s = _first_balanced_sexpr(candidate)
@@ -288,15 +295,18 @@ def extract_expression(text: str | None, allowed_fields: list[str] | None = None
         leaf = re.search(r"\b([a-zA-Z_]\w+)\b", candidate)
         s = leaf.group(1) if leaf else None
     if not s:
-        return None
+        return _ret(None, "无s-表达式")
     try:
         node = parse(s)
         node.validate()
-    except Exception:
-        return None
+    except Exception as e:
+        return _ret(None, f"parse/validate: {type(e).__name__}: {str(e)[:80]}")
     if allowed_fields and not node.fields().issubset(set(allowed_fields)):
-        return None
-    return node
+        bad = sorted(node.fields() - set(allowed_fields))
+        return _ret(None, f"字段越界: {bad}")
+    if node.is_leaf():
+        return _ret(None, "裸叶子(单字段,深度不足)")
+    return _ret(node, "")
 
 
 def parse_verdict(text: str | None) -> tuple[bool, str]:
@@ -361,14 +371,28 @@ def generate_expression(provider, fields: list[str], mechanisms: list[dict] | No
         except Exception:
             _bump(provider, "llm_gen_api_error")
             continue  # LLM 超时/连接错误 → 重试(全失败走兜底,不崩轮)
-        node = extract_expression(text, allowed_fields=fields)
-        if node is not None and not node.is_leaf():
+        node, why = extract_expression(text, allowed_fields=fields, return_reason=True)
+        if node is not None:
             _bump(provider, "llm_gen_ok")
             _register_family(node.expr_hash(), mech["id"])   # 供终审拒因回流定位族
             return node
         _bump(provider, "llm_gen_bad_output")
+        _log_gen_failure(mech["id"], text, why)
     _bump(provider, "llm_gen_fallback")
     return random_tree(fields, rng=rng)  # 全失败兜底(API 错或输出非法)
+
+
+_GEN_FAIL_LOG = Path("output/llm_gen_failures.jsonl")
+
+
+def _log_gen_failure(mech_id: str, raw: str | None, why: str) -> None:
+    """生成端解析失败原文落盘(用户 2026-08-26:失败原因可追溯,同终审审计日志思路)。"""
+    try:
+        with open(_GEN_FAIL_LOG, "a", encoding="utf-8") as f:
+            f.write(json.dumps({"mech": mech_id, "reason": why, "raw": (raw or "")[:400]},
+                               ensure_ascii=False) + "\n")
+    except Exception:  # noqa: BLE001  审计写失败不影响生成
+        pass
 
 
 def review_expression(provider, node: Node, temperature: float = 0.1,

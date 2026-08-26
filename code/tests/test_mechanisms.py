@@ -232,3 +232,26 @@ def test_review_verdict_counters():
     prov2 = MockProvider(response="ACCEPT: 合理")
     M.review_expression(prov2, parse("zscore(ma(close, 20))"))
     assert getattr(prov2, "llm_rev_accept") == 1 and getattr(prov2, "llm_rev_reject", 0) == 0
+
+
+def test_extract_expression_failure_reasons():
+    """解析失败原因分类(2026-08-26 用户:失败可追溯)——各失败类别返回可读原因。"""
+    n, why = M.extract_expression("zscore(ma(close, 20))", ALLOWED, return_reason=True)
+    assert n is not None and why == ""
+    _, why1 = M.extract_expression("zscore(ma(mv, 20))", ALLOWED, return_reason=True)
+    assert "字段越界" in why1 and "mv" in why1
+    _, why2 = M.extract_expression("zscore化rank_ts(div(roc(overnight,5), roc(intraday,5)), 20)",
+                                   ALLOWED, return_reason=True)
+    assert "parse" in why2                      # 自造算子名 → parse 失败
+    _, why3 = M.extract_expression("完全不是表达式 blah", ALLOWED, return_reason=True)
+    assert why3                                 # 有失败原因(越界或无表达式)
+
+
+def test_generate_failure_logged(tmp_path):
+    """生成失败原文落盘 llm_gen_failures.jsonl(mech/reason/raw 三字段)。"""
+    import json
+    prov = MockProvider(response="zscore化rank_ts(div(roc(overnight,5), roc(intraday,5)), 20)")
+    node = M.generate_expression(prov, ALLOWED, rng=np.random.default_rng(0))
+    node.validate()                                     # 兜底 random_tree 合法
+    line = json.loads(M._GEN_FAIL_LOG.read_text(encoding="utf-8").strip().split("\n")[-1])
+    assert line["mech"] and "parse" in line["reason"] and "raw" in line
