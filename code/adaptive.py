@@ -91,7 +91,10 @@ def forced_budget(mode: str | None, llm_share: float | None = None,
     for k in _BUDGET_KEYS:
         b[k] = max(0.0, b[k])
     tot = sum(b.values())
-    cfg = EvolveConfig(**{k: round(b[k] / tot, 4) for k in _BUDGET_KEYS})
+    vals = {k: round(b[k] / tot, 4) for k in _BUDGET_KEYS}
+    top = max(vals, key=vals.get)                    # 舍入残差吸收进最大项
+    vals[top] = round(vals[top] + (1.0 - sum(vals.values())), 4)
+    cfg = EvolveConfig(**vals)
     tag = (mode or "baseline") + (f",llm={llm_share}" if llm_share is not None else "")
     reason = f"forced-{tag}(用户指定轮数,跑完自动回自适应)"
     return cfg, reason
