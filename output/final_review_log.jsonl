@@ -4,3 +4,11 @@
 {"iter": 525, "expr": "rank_cs(rank_ts(delta(zscore(bm), 20), 40))", "accept": false, "raw": "REJECT: bm分母市值可能为零导致除零错误。"}
 {"iter": 525, "expr": "std(mul(min(log_volume, 20), rank_cs(zscore(log_volume))), 80)", "accept": false, "raw": "REJECT: 2023年多空收益仅1.8%接近零，存在单年依赖风险。", "readmit": true}
 {"iter": 525, "expr": "rank_cs(rank_ts(delta(zscore(bm), 20), 40))", "accept": false, "raw": "REJECT: 逐年多空收益集中于 2018/2019 两年(合计 40.4%)，2020-2023 年收益显著衰减且接近零(均值 7.8%)，存在严重的单年依赖风险。", "readmit": true}
+{"iter": 526, "expr": "rank_cs(roc(rank_cs(adj_high), 20))", "accept": false, "raw": "REJECT: roc 直接作用于 rank_cs(adj_high)，其截面排名最小值可能为 0/趋零，存在除零风险；逐年多空无单年集中或零收益依赖，不构成额外拒因。"}
+{"iter": 526, "expr": "add(add(zscore(adj_high), zscore(rank_cs(log_mv))), zscore(std(log_amount, 20)))", "accept": true, "raw": "ACCEPT: 逐年多空核对无单年集中或零依赖（最高48.2%未超其余总和，各年>2%），多头超额8.7%>1%；表达式无div/roc除零、20日窗口不极端、三项均经zscore截面标准化无量纲错配，且std(log_amount,20)无平滑/极值嵌套，经济含义为高价/规模/成交额波动暴露可自洽。"}
+{"iter": 526, "expr": "add(max(skew(ret, 120), 20), zscore(skew(adj_close, 60)))", "accept": true, "raw": "ACCEPT: 无除零/极端窗口/量纲错配，收益偏度峰值与价格偏度zscore属于偏度类信号、混合经济含义自洽；逐年多空无单年集中、无半数年份近零且多头超额>1%。"}
+{"iter": 527, "expr": "add(add(max(skew(ret, 120), 20), zscore(skew(adj_close, 60))), zscore(skew(rank_cs(overnight), 80)))", "accept": false, "raw": "REJECT: 逐年多空未触发单年集中/空头独撑，但首项 max(skew(ret,120),20) 未做截面标准化，与后两项 zscore 子项直接 add 存在尺度/量纲错配，合成后会由首项主导。"}
+{"iter": 528, "expr": "add(add(rank_cs(ma(roe, 120)), rank_cs(skew(adj_close, 40))), rank_cs(std(log_amount, 20)))", "accept": true, "raw": "ACCEPT: 无 div/roc 除零风险，窗口与量纲合理；rank_cs 输出为截面排序无量纲，加总自洽；无平滑套平滑/极值套极值；逐年多空核对未触发单年依赖或空头独撑。"}
+{"iter": 528, "expr": "add(add(rank_cs(intraday), rank_cs(skew(adj_close, 40))), rank_cs(std(zscore(log_amount), 5)))", "accept": true, "raw": "ACCEPT: 无量纲错配、除零或窗口问题；逐年最大34.9%未超其余年份总和、无|y|<2%年份且多头超额1.64%>1%，指标核对通过。"}
+{"iter": 530, "expr": "add(add(rank_cs(adj_close), rank_cs(skew(adj_close, 40))), rank_cs(std(zscore(log_amount), 5)))", "accept": true, "raw": "ACCEPT: 三项均为横截面排名后相加，量纲统一且无除零/平滑嵌套，窗口合理；逐年多空最大27.3%未超其余年份总和、无|y|<2%年份，多头超额3.08%>1%，通过。"}
+{"iter": 534, "expr": "rank_cs(roc(rank_cs(adj_close), 20))", "accept": false, "raw": "REJECT: roc 直接作用于 rank_cs(adj_close)，截面排名分位数可能为 0/趋零，变化率分母有除零/极端值风险；逐年多空核对无单年集中、无近零年、多头超额 4.18%>1%，非指标拒。"}
