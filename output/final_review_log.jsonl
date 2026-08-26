@@ -27,3 +27,5 @@
 {"iter": 552, "expr": "sub(zscore(std(log_amount, 20)), zscore(bm))", "accept": true, "raw": "ACCEPT: 无除零/量纲错配与过度平滑问题，zscore后无量纲可相减；经济含义为成交额波动暴露减价值暴露；逐年多空最大单年未超其余年份总和、无年份近零且多头超额>1%，非空头独撑。"}
 {"iter": 553, "expr": "std(mul(min(log_volume, 20), rank_cs(log_amount)), 80)", "accept": true, "raw": "ACCEPT: 无除零/极端窗口/量纲错配，经济含义为成交额截面排名加权的20日低量波动，逐年多空核对无单年集中、零年依赖或多头独撑。"}
 {"iter": 553, "expr": "add(add(zscore(log_amount), zscore(rank_cs(intraday))), zscore(std(log_amount, 20)))", "accept": true, "raw": "ACCEPT: 无除零/量纲错配，20日窗口合理且非平滑嵌套；逐年多空最大52.8%未超其余年份总和、无年份接近零，多头超额5.04%非空头独撑。"}
+{"iter": 557, "expr": "add(hl_ratio, zscore(skew(rank_cs(overnight), 80)))", "accept": false, "raw": "REJECT: 逐年多空未触发单年集中/空头独撑门槛，但 add(hl_ratio, zscore(...)) 将有界收盘区间位与截面标准化偏度直接相加，量纲/尺度不匹配，合成后经济含义失真。"}
+{"iter": 558, "expr": "add(add(rank_cs(skew(adj_close, 40)), rank_cs(skew(intraday, 40))), rank_cs(sub(down_shadow, roe)))", "accept": false, "raw": "REJECT: sub(down_shadow, roe) 将技术面影线占比与基本面净资产收益率直接相减，量纲/经济含义不自洽，且先减后截面排名易受高方差变量主导；逐年多空虽无单年依赖或空头独撑，但结构不成立。"}

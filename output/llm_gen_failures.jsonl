@@ -1,3 +1,4 @@
 {"mech": "ts_vol_compress", "reason": "parse/validate: IndexError: list index out of range", "raw": "rank_cs(ma(sub(zscore(roc(amplitude, 20)), zscore(std(roc(amplitude, 20), 20)), 10))"}
 {"mech": "cs_dispersion", "reason": "parse/validate: ValueError: 未知算子: abs", "raw": "rank_cs(div(std(ret, 20), ma(abs(ret), 20)))"}
 {"mech": "ts_vol_compress", "reason": "字段越界: ['close']", "raw": "rank_ts(div(std(close, 20), ma(std(close, 20), 20)), 20)"}
+{"mech": "cs_value", "reason": "parse/validate: IndexError: list index out of range", "raw": "add(rank_cs(ma(roe, 80)), rank_cs(ma(sub(bm, div(1, roe)), 40)))"}
