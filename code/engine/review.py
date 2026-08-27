@@ -160,4 +160,10 @@ def apply(tree: Node, min_depth: int = MIN_DEPTH) -> tuple[Node | None, str]:
     if bad_roc:
         return None, f"review:{bad_roc}"
 
+    # 累计退休(用户 2026-08-27):骨架历史开采量达上限(代际分账)→ 确定性拒
+    from engine import mined_patterns
+    mined = mined_patterns.is_mined_out(t)
+    if mined:
+        return None, f"review:{mined}"
+
     return t, ""

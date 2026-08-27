@@ -189,3 +189,22 @@ def test_roc_on_levels_and_delta_on_rank_pass():
     assert t is not None, reason
     t2, reason2 = apply(parse("add(rank_cs(log_mv), delta(rank_cs(log_mv), 5))"))
     assert t2 is not None, reason2
+
+
+def test_mined_out_cohort_separation():
+    """累计退休代际分账(2026-08-27):价量超采插件(历史60次)退休拒;
+    同骨架基本面字段新代际有额度放行——用户要求新字段包容度。"""
+    from engine import mined_patterns as mplib
+    from engine.fsa import skeleton
+    # 人工记账:价量账记满 SUBTREE_CAP(12),fund 账只记 1
+    pv_node = parse("zscore(std(rank_cs(log_mv), 20))")
+    for _ in range(12):
+        mplib.record(pv_node, 1)
+    fund_node = parse("zscore(std(rank_cs(roe), 20))")
+    mplib.record(fund_node, 1)
+    # 价量同骨架候选 → 拒
+    t, reason = apply(parse("add(zscore(std(rank_cs(log_mv), 20)), rank_cs(ret))"))
+    assert t is None and "mined_out" in reason and "pv" in reason
+    # 基本面同骨架候选 → 放行(嵌在合法表达式中)
+    t2, reason2 = apply(parse("add(zscore(std(rank_cs(roe), 20)), rank_cs(ret))"))
+    assert t2 is not None, reason2

@@ -15,7 +15,11 @@ def _isolate_runtime_outputs(tmp_path):
     from llm import mechanisms as _M
     old_genlog = _M._GEN_FAIL_LOG
     _M._GEN_FAIL_LOG = tmp_path / "llm_gen_failures.jsonl"   # 生成失败审计
+    from engine import mined_patterns as _mp
+    old_mp = _mp._PATH
+    _mp._reset(path=tmp_path / "mined_patterns.json", lib={})  # 累计退休账本
     yield
     fplib._reset(path=old, lib={})
     _lo.OUTPUT_DIR = old_out
     _M._GEN_FAIL_LOG = old_genlog
+    _mp._reset(path=old_mp, lib={})

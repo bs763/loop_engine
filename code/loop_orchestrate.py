@@ -332,6 +332,9 @@ def run_round(*, checkpoint: Checkpoint, evolver: Evolver, evaluator: Evaluator,
             reject_records.append({"iter": new_iter, "hash": h, "expr": node.to_str(),
                                    "disp": disp, "reasons": disp_reasons})
             fplib.record_stored(node, new_iter)   # 成功史永久(被替换出库不扣减)
+            from engine import mined_patterns as mplib
+            mplib.record(node, new_iter)          # 累计退休记账(整树+子树,代际分账)
+            mplib.save()
         else:
             if len(rejects) < 5:
                 rejects.append(f"{node.to_str()}: {fr.reasons}")

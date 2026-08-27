@@ -95,3 +95,14 @@ WINDOW_SET = [5, 10, 20, 40, 60, 80, 120, 250]
 COMPUTE_START_YEAR = 2015       # 因子计算起点(warmup buffer);OSS 数据从 2015 起
 BACKTEST_START = "2018-01-01"   # 回测/导出窗口(只这部分喂 alphalab / 导出)
 BACKTEST_END = "2025-12-31"
+
+# ===== [用户 2026-08-27] 累计退休制(骨架开采额度按字段代际分账)=====
+# 背景:保优淘劣使 FSA#10 并发口径永不触发(全历史 0 次);子树插件被超采无记忆
+# (实测 zscore(std(rank_cs(FLD),N)) 历史累计 60 次/当前库仅 2)。累计口径:每次入库
+# (含被替换事件)给骨架记一次开采,累计达上限→该结构对该代际永久退休。
+# 代际分账(用户要求新字段有包容度):价量账继承全部历史欠账;基本面账从实际小计数起步。
+FUND_FIELDS = frozenset(["roe", "roa", "profit_growth", "bm", "div_yield", "ps",
+                         "op_margin", "asset_turn", "ocf_asset", "ocf_margin",
+                         "debt_ratio", "np_margin"])
+MINED_TREE_CAP = {"pv": 8, "fund": 12}       # 整树骨架退休线(历史Top=6,温和起步)
+MINED_SUBTREE_CAP = {"pv": 12, "fund": 16}   # >=4节点子树退休线(价量Top=60/44/27/16 立即退休)
