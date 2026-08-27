@@ -104,9 +104,9 @@
 </div>
 
 <!-- ═══════════════════ 2 ═══════════════════ -->
-<h2><span class="n">2</span>数据——13 个基础字段,2015~2025 全A股</h2>
+<h2><span class="n">2</span>数据——25 个字段(价量 13 + 基本面 12),2015~2025 全A股</h2>
 <div class="card">
-<p>所有因子从这 13 个字段构建。数据来自 OSS 分钟K线,聚合为日频宽表(行=交易日,列=股票):</p>
+<p>所有因子从这 25 个字段构建。价量数据来自 OSS 分钟K线聚合为日频宽表;基本面数据来自财务报表三表 + 财务指标 + 估值表(<b>2026-08 分两批接入</b>):</p>
 <table>
 <tr><th>字段</th><th>含义</th><th>类型</th></tr>
 <tr><td><code>adj_close / adj_high / adj_low</code></td><td>复权收盘/最高/最低价</td><td>价格</td></tr>
@@ -118,9 +118,14 @@
 <tr><td><code>hl_ratio</code></td><td>收盘位置(收-低)/(高-低)</td><td>比率</td></tr>
 <tr><td><code>log_volume / log_amount</code></td><td>对数成交量/成交额</td><td>量额</td></tr>
 <tr><td><code>log_mv</code></td><td>对数市值(close×流通股本)</td><td>规模</td></tr>
+<tr><td><code>roe / roa / profit_growth</code></td><td>净资产收益率 / 总资产收益率 / 净利增速</td><td><b>基本面</b>(一期)</td></tr>
+<tr><td><code>bm / div_yield / ps</code></td><td>账面市值比 / 股息率 / 市销率</td><td><b>基本面</b>(一期)</td></tr>
+<tr><td><code>op_margin / np_margin</code></td><td>营业利润率 / 净利率</td><td><b>基本面</b>(二期,杜邦族)</td></tr>
+<tr><td><code>asset_turn / debt_ratio</code></td><td>资产周转率 / 资产负债率</td><td><b>基本面</b>(二期,杜邦族)</td></tr>
+<tr><td><code>ocf_margin / ocf_asset</code></td><td>现金流含量(OCF/营收)/ OCF÷总资产</td><td><b>基本面</b>(二期,现金流族)</td></tr>
 </table>
 <div class="callout">
-<b>为什么只有13个字段?</b> 刻意保持精简——字段太多会让搜索空间爆炸,且容易找到虚假的「数据挖掘效应」。13个字段 × 14个算子 × 4层深度,组合空间已经足够大。
+<b>为什么从 13 个扩到 25 个?</b> 价量字段刻意精简——字段太多容易找到虚假的「数据挖掘效应」。但 2026-08 实测发现:单一价量数据源内,新因子与库存因子的相关性天然挤在 0.3~0.6 区间(「相关天花板」),真正的低相关只能来自<b>不同经济逻辑的数据源</b>。基本面 12 字段全部是<b>日频、按公告时点对齐(PIT)</b>的表——每只股票每年只在 4/8/10 月财报披露季跳变 4~5 次,绝不使用未来数据;负 PE 类「语义反转陷阱」字段已被主动排除。
 </div>
 </div>
 
@@ -162,17 +167,18 @@
 </div>
 
 <h3>4.2 大模型怎么生成因子——从经济学假设到数学表达式</h3>
-<p>系统预置了 <b>12 张「经济学假设卡片」</b>,每张描述一种市场无效性(为什么某些股票会涨/跌的经济学解释)。每次调用大模型时,系统<b>选一张卡片</b>作为「任务书」:</p>
+<p>系统预置了 <b>17 张「经济学假设卡片」</b>(12 张市场机制卡 + 5 张基本面卡:价值修复/质量溢价/基本面成长/杜邦效率/现金流质量),每张描述一种市场无效性(为什么某些股票会涨/跌的经济学解释)。每次调用大模型时,系统<b>选一张卡片</b>作为「任务书」:</p>
 
 <pre><code>你是A股量化研究员。基于下列因子语法,生成恰好一个因子表达式。
 
 【算子(14)】 ma, std, max, min, roc, delta, skew, rank_ts,
              zscore, rank_cs, add, sub, mul, div
-【可用字段】adj_close, adj_high, adj_low, overnight, intraday,
-           amplitude, up_shadow, down_shadow, hl_ratio, ret,
-           log_volume, log_amount, log_mv
-【硬规则】s-表达式嵌套,最大深度4层;
-         add/sub不得跨量纲;窗口为正整数
+【可用字段】adj_close, adj_high, …, log_mv (价量13个)
+           roe, roa, profit_growth, bm, div_yield, ps (基本面6个)
+           op_margin, asset_turn, … (杜邦/现金流6个)
+【硬规则】s-表达式嵌套,深度至少2层、最多4层;
+         add/sub不得跨量纲;反向组合用sub(标准化(X),标准化(Y));
+         基本面×价量混血:各分支rank_cs/zscore标准化后相加
 
 <b>【目标机制】跳空与隔夜定价: 隔夜跳空, 隔夜延续, 日内回补
 【经济学假设】隔夜信息不对称——机构在开盘前集中交易,
@@ -185,7 +191,7 @@
 <div class="tree">
 <div class="lvl1">📖 读到经济学假设: "隔夜信息不对称,跳空包含知情交易者信号"</div>
 <div class="lvl2">↓ 我需要度量「隔夜跳空的方向和大小」</div>
-<div class="lvl3">→ 看13个字段……<span class="fld">overnight</span> = 今开/昨收-1,正是跳空的度量!</div>
+<div class="lvl3">→ 看可用字段……<span class="fld">overnight</span> = 今开/昨收-1,正是跳空的度量!</div>
 <div class="lvl2">↓ 单日跳空噪声大,需要平滑</div>
 <div class="lvl3">→ <span class="op">ma</span>(<span class="fld">overnight</span>, <span class="win">10</span>) = 10日平均隔夜收益</div>
 <div class="lvl2">↓ 假设说跳空有信号,但日内可能回补——我对比隔夜和日内</div>
@@ -208,7 +214,7 @@
 </div>
 
 <h3>4.3 机制选择:偏向未挖掘区域</h3>
-<p>系统不是均匀地轮选12张卡片,而是<b>偏向当前库内覆盖不足的机制族</b>——统计每个族的字段在库内被使用的频率,用得越少,被选中概率越高。这确保探索是定向的:已充分挖掘的领域少投入,空白领域多投入。</p>
+<p>系统不是均匀地轮选17张卡片,而是<b>偏向当前库内覆盖不足的机制族</b>——统计每个族的字段在库内被使用的频率,用得越少,被选中概率越高(基本面 5 族另加最高权重倾斜)。这确保探索是定向的:已充分挖掘的领域少投入,空白领域多投入。</p>
 
 <h3>4.4 演化搜索</h3>
 <p>已入库的因子成为「父母」,通过<b>变异</b>(换一个叶子字段——比如把上面例子中的 <code>intraday</code> 换成 <code>skew(ret,40)</code>)和<b>交叉</b>(拼接两个因子的子树)产生「子代」。好的因子被反复变异精炼,差的自然淘汰——这就是<b>演化算法</b>的核心思想。</p>
@@ -318,10 +324,10 @@
 <h2><span class="n">8</span>完整流水线总览</h2>
 <div class="card">
 <pre><code>
-OSS分钟K线 → 日频字段宽表(13字段) → 因子表达式树(候选100个/轮)
+OSS行情+财务三表 → 日频字段宽表(25字段) → 因子表达式树(候选100个/轮)
      │                                    │
      │                              ┌─────┴─────┐
-     │                              │ LLM 机制引导 │  ← 12个市场机制族
+     │                              │ LLM 机制引导 │  ← 17个经济学假设卡片
      │                              │ 变异/交叉    │  ← 库内因子做父母
      │                              │ 参数扰动    │
      │                              │ 随机生成    │
@@ -350,7 +356,8 @@ LLM 终审(表达式+指标+逐年分布)
 <h3>工程架构</h3>
 <table>
 <tr><th>组件</th><th>说明</th></tr>
-<tr><td>LLM</td><td>智谱 GLM-5.3(Anthropic兼容端点,Coding Plan订阅),生成+终审双端</td></tr>
+<tr><td>LLM 生成</td><td>智谱 GLM-5.3(Anthropic兼容端点,Coding Plan订阅)</td></tr>
+<tr><td>LLM 终审</td><td>DeepSeek v4-pro(2026-08-25 切换;裁决原文落盘 final_review_log.jsonl 可审计)</td></tr>
 <tr><td>回测引擎</td><td>alphalab(独立子进程,3线程并行,每次回测~37秒)</td></tr>
 <tr><td>检查点</td><td>JSON原子落盘,任意中断可恢复</td></tr>
 <tr><td>版本管理</td><td>git + GitHub 每日自动备份</td></tr>
@@ -381,8 +388,8 @@ LLM 终审(表达式+指标+逐年分布)
 <h3>OOS 崩塌跳闸</h3>
 <p>每轮自动检查:如果库内因子OOS中位IC ≤ 0 或负占比 ≥ 50%,系统<b>立即停止</b>并向用户汇报全库衰减明细,等待人工决策。</p>
 
-<h3>12 张经济学假设卡片(完整版)</h3>
-<p>每张卡片包含:机制名称、子现象(prototypes)、经济学假设(hint)、相关字段。大模型生成时收到其中一张作为「任务书」。</p>
+<h3>17 张经济学假设卡片(完整版)</h3>
+<p>每张卡片包含:机制名称、子现象(prototypes)、经济学假设(hint)、相关字段。大模型生成时收到其中一张作为「任务书」。#1-12 为图表 7 原始市场机制族;#13-17 为基本面族(2026-08 分两批接入,boost 6x 最高优先)。</p>
 <table>
 <tr><th>#</th><th>机制族</th><th>子现象</th><th>经济学假设</th><th>相关字段</th></tr>
 <tr><td>1</td><td><b>趋势与动量</b></td><td>趋势启动 · 趋势延续 · 动量衰竭</td><td>价格/收益的持续性:过去N日收益或均线斜率具有惯性,延续或衰竭</td><td>ret, adj_close, overnight</td></tr>
@@ -397,11 +404,16 @@ LLM 终审(表达式+指标+逐年分布)
 <tr><td>10</td><td><b>截面规模动量</b></td><td>规模因子动量 · 规模因子反转 · 规模切换</td><td>市值排名的变化率(规模动量)反映市场对股票的重新定价</td><td>log_mv, log_amount</td></tr>
 <tr><td>11</td><td><b>截面偏度效应</b></td><td>收益偏度 · 价格偏度 · 偏度与彩票偏好</td><td>收益分布的偏度反映投资者的彩票偏好;左偏(极端损失多)的股票被高估</td><td>ret, adj_close, adj_high</td></tr>
 <tr><td>12</td><td><b>截面波动率</b></td><td>高波动溢价 · 低波动异象 · 波动率排名</td><td>低波动异象——低波动股票长期跑赢高波动股票(行为金融学解释)</td><td>ret, amplitude, hl_ratio</td></tr>
+<tr><td>13</td><td><b>价值与估值修复</b></td><td>低估值溢价 · 估值修复动量 · 估值与质量背离</td><td>便宜的好公司:BM/PS 低估溢价、估值分位修复、「便宜且赚钱」比「单纯便宜」可靠</td><td>bm, ps, div_yield</td></tr>
+<tr><td>14</td><td><b>质量溢价与盈利改善</b></td><td>高盈利溢价 · 盈利改善动量 · 盈利估值错配</td><td>ROE/ROA 高且在改善的公司长期跑赢;盈利能力的变化(roc作用于季更阶梯)即改善动量</td><td>roe, roa</td></tr>
+<tr><td>15</td><td><b>基本面成长</b></td><td>成长溢价 · 成长加速度 · 成长估值匹配</td><td>净利润增速的水平与变化(二阶=加速度);警惕高估值成长陷阱(growth高但已被充分定价)</td><td>profit_growth, bm, ps</td></tr>
+<tr><td>16</td><td><b>杜邦效率分解</b></td><td>利润率×周转双优 · 周转改善动量 · 效率错配修复</td><td>ROE=净利率×周转×杠杆——高利润率×高周转的经营效率,低杠杆更可持续</td><td>op_margin, np_margin, asset_turn, debt_ratio</td></tr>
+<tr><td>17</td><td><b>现金流质量</b></td><td>现金流含量溢价 · 现金流利润背离 · 现金创造效率改善</td><td>盈利的质量在于现金流:OCF/营收高且与净利率匹配=利润含金量高;利润高但OCF弱是恶化信号</td><td>ocf_margin, ocf_asset, np_margin</td></tr>
 </table>
-<p style="color:var(--mut);font-size:13px">注:系统在选择卡片时,会额外加权偏向当前库内覆盖不足的族(见 §4.3),以及用户指定的优先族(如跳空/隔夜类 boost 4x)。</p>
+<p style="color:var(--mut);font-size:13px">注:系统在选择卡片时,会额外加权偏向当前库内覆盖不足的族(见 §4.3),基本面 5 族另有 boost 6x 最高优先。基本面卡片的 hint 内置「基本面×价量混血」指引——各分支 rank_cs/zscore 标准化后相加(库内实证唯一稳定可行的入库形态)。</p>
 </div>
 
-<div class="footer">factor_loop_engine · 2026-08-19 重写 · github.com/bs763/loop_engine</div>
+<div class="footer">factor_loop_engine · 2026-08-19 重写 · 2026-08-27 更新(字段13→25、卡片12→17、终审切DeepSeek) · github.com/bs763/loop_engine</div>
 </div>
 </body>
 </html>
