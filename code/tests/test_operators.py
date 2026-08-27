@@ -207,3 +207,21 @@ def test_skew_matches_series_skew():
     # 常数窗口 → NaN(与 pandas 口径一致)
     const = pd.DataFrame({"A": [3.0] * 30}, index=pd.date_range("2020-01-01", periods=30))
     assert np.isnan(op_skew(const, 20).iloc[25, 0])
+
+
+def test_zscore_zero_sd_outputs_zero():
+    """zscore sd=0 保护(2026-08-27 覆盖率塌陷根因):截面全同值 → 输出 0(中性)而非
+    0/0=NaN 整天蒸发;原始 NaN 仍保留 NaN。季更阶梯字段的 delta/roc 在季中月
+    全市场为 0,曾致整月覆盖塌到 10% 触发覆盖率闸。"""
+    import numpy as np
+    import pandas as pd
+    from engine.operators import op_zscore
+    df = pd.DataFrame([[1.0, 1.0, 1.0], [1.0, 2.0, 3.0], [np.nan, 5.0, 7.0]],
+                      index=pd.date_range("2024-01-01", periods=3),
+                      columns=["a", "b", "c"])
+    z = op_zscore(df)
+    assert (z.iloc[0] == 0).all()                      # 常数截面 → 全 0
+    assert z.iloc[0].notna().all()                     # 不产生 NaN
+    assert z.iloc[1].abs().sum() > 0                   # 正常截面仍有离散
+    assert np.isnan(z.iloc[2]["a"])                    # 原始 NaN 保留
+    assert z.iloc[2][["b", "c"]].notna().all()

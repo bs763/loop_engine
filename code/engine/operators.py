@@ -110,11 +110,18 @@ def op_div(a: pd.DataFrame, b: pd.DataFrame) -> pd.DataFrame:
 def op_zscore(p: pd.DataFrame) -> pd.DataFrame:
     """逐截面标准化:(x − 截面均值)/ 截面标准差。入口先消毒 ±inf → NaN:
     单个 inf 就会毒化整个截面的 mean/std,令当天全截面 NaN(2019-04-18 事故的放大器),
-    必须挡在这里——叶子与 div/roc 也已消毒,此处为最后防线。"""
+    必须挡在这里——叶子与 div/roc 也已消毒,此处为最后防线。
+
+    sd=0 保护(2026-08-27,覆盖率塌陷根因):截面全同值(如季更阶梯字段的 delta 在
+    季中月全市场为 0)→ (x−mu)/sd = 0/0 = NaN,整月蒸发触发覆盖率闸(实测 2025-01
+    delta(ocf_asset,20) 截面 5078 只全为 0)。常数截面无截面信息,输出 0(中性)
+    数学上自然:每个值都等于均值,z 分数就是 0;对排名/IC 无害。"""
     p = p.replace([np.inf, -np.inf], np.nan)
     mu = p.mean(axis=1)
     sd = p.std(axis=1, ddof=1)
-    return p.sub(mu, axis=0).div(sd, axis=0)
+    z = p.sub(mu, axis=0).div(sd.replace(0, np.nan), axis=0)
+    return z.fillna(0).where(p.notna())   # 仅原始 NaN 保留 NaN,其余(含 sd=0 截面)→ 0
+
 
 
 def op_rank_cs(p: pd.DataFrame) -> pd.DataFrame:
