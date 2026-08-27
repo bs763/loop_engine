@@ -38,6 +38,9 @@ _C_SUSP = CACHE_DIR / "is_suspended"
 _C_EXF = CACHE_DIR / "ex_factor.parquet"
 _C_FININD = CACHE_DIR / "fin_indicators"
 _C_VALU = CACHE_DIR / "valuation"
+_C_INCOME = CACHE_DIR / "income"
+_C_BALANCE = CACHE_DIR / "balance_sheet"
+_C_CASHFLOW = CACHE_DIR / "cash_flow"
 
 # (kind → (OSS glob, 本地目录))
 _TABLE_MAP = {
@@ -47,6 +50,9 @@ _TABLE_MAP = {
     "is_suspended": (oss.IS_SUSPENDED, _C_SUSP),
     "fin_indicators": (oss.FIN_INDICATORS, _C_FININD),
     "valuation": (oss.VALUATION, _C_VALU),
+    "income": (oss.INCOME, _C_INCOME),
+    "balance_sheet": (oss.BALANCE_SHEET, _C_BALANCE),
+    "cash_flow": (oss.CASH_FLOW, _C_CASHFLOW),
 }
 
 # 基本面字段选取与改名(2026-08-24 首批 6 个,全为比率型=dimless):
@@ -60,6 +66,11 @@ FUNDAMENTAL_COLS = {
     "dividend_yield_ttm": "div_yield",
     "ps_ratio_ttm": "ps",
 }
+
+# 基本面二期派生字段(2026-08-27 用户拍板):三表跨表比率,回测端无量纲,
+# 经济逻辑=杜邦分解族(利润率×周转)与现金流质量族。全部日频 PIT 阶梯
+# (实测 op_margin 每股每年 4 个 distinct 值)。分母护栏:营收/总资产 >0 且有限。
+FUNDAMENTAL2_COLS = ["op_margin", "asset_turn", "ocf_asset", "ocf_margin", "debt_ratio", "np_margin"]
 
 
 def _sql_list(paths: list[Path]) -> str:
@@ -129,7 +140,33 @@ def build_factor_table(start_year: int, end_year: int, *, use_cache: bool = True
                     for y in years]
         va_files = [_ensure_year_cache(con, "valuation", y, use_cache=use_cache, cols=va_cols)
                     for y in years]
+        ic_cols = ["order_book_id", "date", "operating_revenue_ttm_0",
+                   "profit_from_operation_ttm_0", "net_profit_ttm_0"]
+        bs_cols = ["order_book_id", "date", "total_assets_mrq_0", "total_liabilities_mrq_0"]
+        cf_cols = ["order_book_id", "date", "cash_flow_from_operating_activities_ttm_0"]
+        ic_files = [_ensure_year_cache(con, "income", y, use_cache=use_cache, cols=ic_cols)
+                    for y in years]
+        bs_files = [_ensure_year_cache(con, "balance_sheet", y, use_cache=use_cache, cols=bs_cols)
+                    for y in years]
+        cf_files = [_ensure_year_cache(con, "cash_flow", y, use_cache=use_cache, cols=cf_cols)
+                    for y in years]
         exf_file = _ensure_ex_factor_cache(con, use_cache=use_cache)
+
+        # 基本面二期派生比率(2026-08-27):三表跨表 SELECT,分母>0 且分子分母有限;
+        # np_margin 允许负值(亏损=差,语义正确)
+        f2 = """
+          CASE WHEN isfinite(ic.profit_from_operation_ttm_0) AND ic.operating_revenue_ttm_0 > 0
+               THEN ic.profit_from_operation_ttm_0 / ic.operating_revenue_ttm_0 END AS op_margin,
+          CASE WHEN isfinite(ic.operating_revenue_ttm_0) AND bs.total_assets_mrq_0 > 0
+               THEN ic.operating_revenue_ttm_0 / bs.total_assets_mrq_0 END AS asset_turn,
+          CASE WHEN isfinite(cf.cash_flow_from_operating_activities_ttm_0) AND bs.total_assets_mrq_0 > 0
+               THEN cf.cash_flow_from_operating_activities_ttm_0 / bs.total_assets_mrq_0 END AS ocf_asset,
+          CASE WHEN isfinite(cf.cash_flow_from_operating_activities_ttm_0) AND ic.operating_revenue_ttm_0 > 0
+               THEN cf.cash_flow_from_operating_activities_ttm_0 / ic.operating_revenue_ttm_0 END AS ocf_margin,
+          CASE WHEN isfinite(bs.total_liabilities_mrq_0) AND bs.total_assets_mrq_0 > 0
+               THEN bs.total_liabilities_mrq_0 / bs.total_assets_mrq_0 END AS debt_ratio,
+          CASE WHEN isfinite(ic.net_profit_ttm_0) AND ic.operating_revenue_ttm_0 > 0
+               THEN ic.net_profit_ttm_0 / ic.operating_revenue_ttm_0 END AS np_margin"""
 
         # 基本段列清单(原名 AS 改名)拼进 SELECT。
         # 护栏(2026-08-24 实测发现):ps 存在 inf(营收近零的壳公司)且负营收的负 PS 与负 PE
@@ -175,6 +212,18 @@ def build_factor_table(start_year: int, end_year: int, *, use_cache: bool = True
         va AS (
           SELECT order_book_id, date, {", ".join(va_map)}
           FROM read_parquet({_sql_list(va_files)})
+        ),
+        ic AS (
+          SELECT order_book_id, date, operating_revenue_ttm_0, profit_from_operation_ttm_0, net_profit_ttm_0
+          FROM read_parquet({_sql_list(ic_files)})
+        ),
+        bs AS (
+          SELECT order_book_id, date, total_assets_mrq_0, total_liabilities_mrq_0
+          FROM read_parquet({_sql_list(bs_files)})
+        ),
+        cf AS (
+          SELECT order_book_id, date, cash_flow_from_operating_activities_ttm_0
+          FROM read_parquet({_sql_list(cf_files)})
         )
         SELECT
           db.order_book_id, db.date,
@@ -190,7 +239,8 @@ def build_factor_table(start_year: int, end_year: int, *, use_cache: bool = True
           COALESCE(st.is_st, false)       AS is_st,
           COALESCE(su.is_suspended, false) AS is_suspended,
           {fi_sel},
-          {va_sel}
+          {va_sel},
+          {f2}
         FROM db
         ASOF LEFT JOIN exf
           ON db.order_book_id = exf.order_book_id AND db.date >= exf.ex_date
@@ -199,6 +249,9 @@ def build_factor_table(start_year: int, end_year: int, *, use_cache: bool = True
         LEFT JOIN su ON db.order_book_id = su.order_book_id AND db.date = su.date
         LEFT JOIN fi ON db.order_book_id = fi.order_book_id AND db.date = fi.date
         LEFT JOIN va ON db.order_book_id = va.order_book_id AND db.date = va.date
+        LEFT JOIN ic ON db.order_book_id = ic.order_book_id AND db.date = ic.date
+        LEFT JOIN bs ON db.order_book_id = bs.order_book_id AND db.date = bs.date
+        LEFT JOIN cf ON db.order_book_id = cf.order_book_id AND db.date = cf.date
         """
         df = con.execute(query).fetchdf()
     finally:

@@ -46,6 +46,11 @@ IS_SUSPENDED = f"s3://{BUCKET}/stock/is_suspended/year=*/data.parquet"  # 停牌
 FIN_INDICATORS = f"s3://{BUCKET}/stock/fin_indicators/year=*/data.parquet"  # ROE/ROA/净利增速
 VALUATION = f"s3://{BUCKET}/stock/valuation/year=*/data.parquet"            # BM/PS/PE/股息率/市值等
 
+# ---- 基本面二期三表(2026-08-27 用户拍板扩字段;同为日频 PIT 阶梯,实测 op_margin 每股每年 4 个 distinct 值)----
+INCOME = f"s3://{BUCKET}/stock/income/year=*/data.parquet"                  # 利润表(mrq/ttm 全科目)
+BALANCE_SHEET = f"s3://{BUCKET}/stock/balance_sheet/year=*/data.parquet"    # 资产负债表
+CASH_FLOW = f"s3://{BUCKET}/stock/cash_flow/year=*/data.parquet"            # 现金流量表(OCF)
+
 # ---- 标的 / 日历 / 指数(后续过滤/分池用)----
 INSTRUMENTS = f"s3://{BUCKET}/stock/instruments/data.parquet"          # 标的清单
 FACTOR_EXPO_V2 = f"s3://{BUCKET}/stock/factor_exposure_v2/year=*/data.parquet"  # Barra CNE5 因子暴露

@@ -36,7 +36,10 @@ FIELDS = ["adj_close", "adj_high", "adj_low", "overnight", "intraday", "amplitud
           "up_shadow", "down_shadow", "hl_ratio", "ret", "log_volume", "log_amount", "log_mv",
           # 基本面首批 6 字段(2026-08-24,用户拍板:突破单一价量源的相关性天花板;
           # 日频 PIT 对齐,loader FUNDAMENTAL_COLS 改名而来;故意不含 PE/PEG——负值 rank 语义反转)
-          "roe", "roa", "profit_growth", "bm", "div_yield", "ps"]
+          "roe", "roa", "profit_growth", "bm", "div_yield", "ps",
+          # 基本面二期 6 派生字段(2026-08-27,用户拍板扩字段:三表跨表比率,杜邦/现金流族;
+          # 同为日频 PIT 阶梯,分母护栏营收/总资产>0——见 data_loader FUNDAMENTAL2_COLS)
+          "op_margin", "asset_turn", "ocf_asset", "ocf_margin", "debt_ratio", "np_margin"]
 PANELS_CACHE = CACHE_DIR / "panels"
 DEFAULT_CHECKPOINT = OUTPUT_DIR / "checkpoint.json"
 DEFAULT_ALPHALAB_CONFIG = PROJECT_ROOT / "config" / "alphalab.yaml"   # 项目专用副本(h5-only、无 barra)
@@ -51,7 +54,7 @@ def _synth_panels() -> dict[str, pd.DataFrame]:
             for f in FIELDS}
 
 
-PANELS_VERSION = "mv=close×fc + adj=raw×f_t(PIT) 2026-08-18 + fundamental6+ps-guard 2026-08-24"   # 口径版本:变更时缓存自动失效重建
+PANELS_VERSION = "mv=close×fc + adj=raw×f_t(PIT) 2026-08-18 + fundamental6+ps-guard 2026-08-24 + fundamental2x6 2026-08-27"   # 口径版本:变更时缓存自动失效重建
 
 
 def _real_panels() -> dict[str, pd.DataFrame]:

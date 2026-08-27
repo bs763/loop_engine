@@ -151,6 +151,20 @@ MECHANISMS: list[dict] = [
              "bm/ps 显示已被市场充分定价)。【重要】优先【基本面×价量混血】形态(各分支 "
              "rank_cs/zscore 标准化后相加),纯基本面结构难以全过指标关。",
      "field_hints": ["profit_growth", "bm", "ps"]},
+    # ---- 基本面二期 2 族(2026-08-27 用户拍板扩字段:三表跨表比率,杜邦/现金流)----
+    {"id": "cs_dupont", "category": "cs", "name": "杜邦效率分解",
+     "prototypes": ["高利润率×高周转双优", "周转率改善动量", "利润率与周转率错配修复"],
+     "hint": "杜邦分解:ROE=净利率×资产周转率×杠杆——op_margin/np_margin 与 asset_turn "
+             "的高水平与改善(roc 作用于季更阶梯即改善动量)代表经营效率;低 debt_ratio 的"
+             "高效企业更可持续。【重要】优先【基本面×价量混血】形态(各分支 rank_cs/zscore "
+             "标准化后相加);季更字段做时序变化用 roc/ma。",
+     "field_hints": ["op_margin", "np_margin", "asset_turn", "debt_ratio"]},
+    {"id": "cs_cashflow", "category": "cs", "name": "现金流质量",
+     "prototypes": ["现金流含量溢价", "现金流与利润背离", "现金创造效率改善"],
+     "hint": "盈利的质量在于现金流:ocf_margin(OCF/营收)高且与净利率匹配=利润含金量高;"
+             "现金流与利润背离(利润高但 OCF 弱)是财务质量恶化信号;ocf_asset 的改善"
+             "动量代表现金创造效率提升。【重要】优先【基本面×价量混血】形态。",
+     "field_hints": ["ocf_margin", "ocf_asset", "np_margin"]},
 ]
 
 FIELD_MEANINGS = ("open/high/low/close=价, volume=成交量, amount=成交额, "
@@ -159,7 +173,10 @@ FIELD_MEANINGS = ("open/high/low/close=价, volume=成交量, amount=成交额, 
                   "log_volume/log_amount/log_mv=对数规模, "
                   "roe=净资产收益率(季更阶梯,公告时点), roa=总资产收益率, "
                   "profit_growth=净利润同比增速, bm=账面市值比(价值), "
-                  "div_yield=股息率, ps=市销率(反向=便宜)")
+                  "div_yield=股息率, ps=市销率(反向=便宜), "
+                  "op_margin=营业利润率, asset_turn=资产周转率(营收/总资产), "
+                  "ocf_asset=经营现金流/总资产, ocf_margin=现金流含量(OCF/营收), "
+                  "debt_ratio=资产负债率(反向=低杠杆), np_margin=净利率")
 
 # 机制族 boost:把 LLM 生成额外拉向「隔夜跳空」等未充分挖掘机制族(权重乘数)
 # 2026-08-18 干旱期拓宽:加 boost 给全部未覆盖/低覆盖族,让探索打到新信号源
@@ -176,6 +193,9 @@ MECHANISM_BOOST: dict[str, float] = {
     "cs_value": 6.0,            # 价值与估值修复(bm/ps/div_yield;2026-08-26 4->6 用户要求加强)
     "cs_quality": 6.0,          # 质量溢价与盈利改善(roe/roa;2026-08-26 4->6)
     "cs_growth": 6.0,           # 基本面成长(profit_growth;2026-08-26 4->6)
+    # 基本面二期 2 族(2026-08-27 扩字段,同最高优先)
+    "cs_dupont": 6.0,           # 杜邦效率分解(op_margin/asset_turn/debt_ratio)
+    "cs_cashflow": 6.0,         # 现金流质量(ocf_margin/ocf_asset)
 }
 
 

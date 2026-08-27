@@ -216,6 +216,9 @@ FIELD_DIM: dict[str, str] = {
     # 财务指标为公告时点阶梯(季更),时序算子语义如 roc(roe,60)=盈利能力改善动量
     "roe": DIM_DIMLESS, "roa": DIM_DIMLESS, "profit_growth": DIM_DIMLESS,
     "bm": DIM_DIMLESS, "div_yield": DIM_DIMLESS, "ps": DIM_DIMLESS,
+    # 基本面二期 6 派生字段(2026-08-27):三表跨表比率,同上 dimless;季更阶梯同款
+    "op_margin": DIM_DIMLESS, "asset_turn": DIM_DIMLESS, "ocf_asset": DIM_DIMLESS,
+    "ocf_margin": DIM_DIMLESS, "debt_ratio": DIM_DIMLESS, "np_margin": DIM_DIMLESS,
 }
 
 
