@@ -41,3 +41,4 @@
 {"iter": 592, "expr": "add(add(rank_cs(skew(adj_close, 40)), rank_cs(skew(intraday, 40))), rank_cs(sub(hl_ratio, overnight)))", "accept": true, "raw": "ACCEPT: 无表达式级除零/量纲错配或平滑嵌套，skew窗口40正常；逐年最大单年31.6%未超其余总和，2023为+2.1%且多头超额>1%，不触发单年集中或近零依赖。"}
 {"iter": 594, "expr": "add(add(rank_cs(skew(adj_close, 40)), rank_cs(skew(intraday, 40))), rank_cs(sub(down_shadow, zscore(div_yield))))", "accept": false, "raw": "REJECT: sub(down_shadow, zscore(div_yield)) 中下影线占比（0~1）与股息率zscore量纲不匹配，且二者逻辑无关、经济含义不自洽；收益分布无单年集中/近零依赖。"}
 {"iter": 596, "expr": "add(ma(skew(adj_close, 40), 250), rank_cs(skew(adj_close, 40)))", "accept": false, "raw": "REJECT: skew直接作用于非平稳的adj_close价格水平而非收益/收益率，经济含义不自洽且截面不可比。"}
+{"iter": 611, "expr": "add(add(rank_cs(adj_high), rank_cs(log_mv)), rank_cs(skew(adj_close, 40)))", "accept": true, "raw": "ACCEPT: 逐年多空无单年集中（2018年+20.6%<其余54%）且多头超额年化4.41%>1%，三因子均为截面排名可加，无量纲错配或除零/过度平滑问题。"}
