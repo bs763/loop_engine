@@ -104,5 +104,10 @@ BACKTEST_END = "2025-12-31"
 FUND_FIELDS = frozenset(["roe", "roa", "profit_growth", "bm", "div_yield", "ps",
                          "op_margin", "asset_turn", "ocf_asset", "ocf_margin",
                          "debt_ratio", "np_margin"])
-MINED_TREE_CAP = {"pv": 8, "fund": 12}       # 整树骨架退休线(历史Top=6,温和起步)
-MINED_SUBTREE_CAP = {"pv": 12, "fund": 16}   # >=4节点子树退休线(价量Top=60/44/27/16 立即退休)
+# 退休线可通过 .env 覆盖(用户 2026-08-27:参数化方便调整,改后无需重启链):
+#   MINED_TREE_CAP_PV / MINED_TREE_CAP_FUND / MINED_SUBTREE_CAP_PV / MINED_SUBTREE_CAP_FUND
+import os as _os
+def _cap(name_pv: str, name_fund: str, d_pv: int, d_fund: int) -> dict:
+    return {"pv": int(_os.environ.get(name_pv, d_pv)), "fund": int(_os.environ.get(name_fund, d_fund))}
+MINED_TREE_CAP = _cap("MINED_TREE_CAP_PV", "MINED_TREE_CAP_FUND", 8, 12)       # 整树(历史Top=6,温和起步)
+MINED_SUBTREE_CAP = _cap("MINED_SUBTREE_CAP_PV", "MINED_SUBTREE_CAP_FUND", 12, 16)  # >=4节点子树(价量Top=60/44/27/16 立即退休)
