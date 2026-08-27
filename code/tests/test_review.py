@@ -192,19 +192,19 @@ def test_roc_on_levels_and_delta_on_rank_pass():
 
 
 def test_mined_out_cohort_separation():
-    """累计退休代际分账(2026-08-27):价量超采插件(历史60次)退休拒;
-    同骨架基本面字段新代际有额度放行——用户要求新字段包容度。"""
+    """累计退休代际分账(2026-08-27):价量超采插件退休拒;同骨架基本面字段放行;
+    混血子树(一新一老)记 fund 新额度——用户:"有一个新的一个老的算新额度"。"""
     from engine import mined_patterns as mplib
-    from engine.fsa import skeleton
-    # 人工记账:价量账记满 SUBTREE_CAP(12),fund 账只记 1
+    # 人工记账:价量账记满 SUBTREE_CAP(12)
     pv_node = parse("zscore(std(rank_cs(log_mv), 20))")
     for _ in range(12):
         mplib.record(pv_node, 1)
-    fund_node = parse("zscore(std(rank_cs(roe), 20))")
-    mplib.record(fund_node, 1)
-    # 价量同骨架候选 → 拒
+    # 纯价量候选 → 拒
     t, reason = apply(parse("add(zscore(std(rank_cs(log_mv), 20)), rank_cs(ret))"))
     assert t is None and "mined_out" in reason and "pv" in reason
-    # 基本面同骨架候选 → 放行(嵌在合法表达式中)
-    t2, reason2 = apply(parse("add(zscore(std(rank_cs(roe), 20)), rank_cs(ret))"))
+    # 纯基本面同骨架候选 → 放行
+    t2, reason2 = apply(parse("add(zscore(std(rank_cs(roe), 20)), rank_cs(bm))"))
     assert t2 is not None, reason2
+    # 混血(插件叶子是基本面)→ 走 fund 账 → 放行
+    t3, reason3 = apply(parse("add(zscore(std(rank_cs(roe), 20)), rank_cs(ret))"))
+    assert t3 is not None, reason3

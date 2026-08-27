@@ -9,7 +9,7 @@
   - 计数单位 = 入库事件(含被替换出库的,disp=stored/replaced),每次 +1,替换不返还;
   - 代际分账(用户要求新字段有包容度):骨架计数键 = (骨架, 代际)。
     价量账(pv)继承全部历史欠账;基本面账(fund)从实际小计数起步,有自己的额度;
-    混血子树(同时含价量与基本面叶子)给两账各 +1;
+    混血子树(任一叶子为基本面字段)记【fund 新额度】,不消耗 pv 欠账(用户 2026-08-27);
   - 退休判定:候选的整树骨架或任一 ≥4 节点子树骨架,在其叶子所属代际的账上
     累计 ≥ 上限(MINED_TREE_CAP / MINED_SUBTREE_CAP)→ 该结构对该代际退休,
     审查端确定性拒(review:mined_out),新候选永久去重。
@@ -55,12 +55,14 @@ def _size(n) -> int:
     return 1 + sum(_size(c) for c in n.children)
 
 
-def _cohorts(node) -> set[str]:
-    """子树叶子的代际集合:{pv} / {fund} / {pv, fund}(混血)。"""
-    out = set()
+def _cohort(node) -> str:
+    """子树的代际(单值):任一叶子是基本面字段 → fund(混血记新额度,用户 2026-08-27:
+    "有一个是新的有一个是老的,这个子树应该算做新的额度"——混血是基本面探索的已验证
+    形态,不应消耗 pv 的历史欠账);全价量 → pv。"""
     for f in node.fields():
-        out.add("fund" if f in FUND_FIELDS else "pv")
-    return out
+        if f in FUND_FIELDS:
+            return "fund"
+    return "pv"
 
 
 def _subtrees(node, min_nodes: int = FAMILY_SUBTREE_MIN_NODES):
@@ -84,16 +86,14 @@ def record(node, iteration: int) -> None:
     from engine.fsa import skeleton
     lib = _load()
     t_skel = skeleton(node)
-    for cohort in _cohorts(node):
-        k = f"T|{t_skel}|{cohort}"
-        lib[k] = lib.get(k, 0) + 1
-        if _size(node) >= FAMILY_SUBTREE_MIN_NODES:
-            lib[f"S|{t_skel}|{cohort}"] = lib.get(f"S|{t_skel}|{cohort}", 0) + 1
+    tc = _cohort(node)
+    lib[f"T|{t_skel}|{tc}"] = lib.get(f"T|{t_skel}|{tc}", 0) + 1
+    if _size(node) >= FAMILY_SUBTREE_MIN_NODES:
+        lib[f"S|{t_skel}|{tc}"] = lib.get(f"S|{t_skel}|{tc}", 0) + 1
     for sub in _subtrees(node):
         s_skel = skeleton(sub)
-        for cohort in _cohorts(sub):
-            k = f"S|{s_skel}|{cohort}"
-            lib[k] = lib.get(k, 0) + 1
+        sc = _cohort(sub)
+        lib[f"S|{s_skel}|{sc}"] = lib.get(f"S|{s_skel}|{sc}", 0) + 1
 
 
 def is_mined_out(node) -> str | None:
@@ -103,14 +103,14 @@ def is_mined_out(node) -> str | None:
     if not lib:
         return None
     t_skel = skeleton(node)
-    for cohort in _cohorts(node):
-        if lib.get(f"T|{t_skel}|{cohort}", 0) >= MINED_TREE_CAP[cohort]:
-            return f"mined_out_tree({t_skel[:50]}…代际{cohort})"
+    tc = _cohort(node)
+    if lib.get(f"T|{t_skel}|{tc}", 0) >= MINED_TREE_CAP[tc]:
+        return f"mined_out_tree({t_skel[:50]}…代际{tc})"
     for sub in _subtrees(node):
         s_skel = skeleton(sub)
-        for cohort in _cohorts(sub):
-            if lib.get(f"S|{s_skel}|{cohort}", 0) >= MINED_SUBTREE_CAP[cohort]:
-                return f"mined_out_subtree({s_skel[:50]}…代际{cohort})"
+        sc = _cohort(sub)
+        if lib.get(f"S|{s_skel}|{sc}", 0) >= MINED_SUBTREE_CAP[sc]:
+            return f"mined_out_subtree({s_skel[:50]}…代际{sc})"
     return None
 
 
