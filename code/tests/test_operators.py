@@ -238,9 +238,26 @@ def test_skew_constant_window_outputs_zero():
     r = op_skew(const, 20)
     assert r.iloc[25:].notna().all().all()          # 常数窗不再 NaN
     assert (r.iloc[25:] == 0).all().all()           # 输出 0
-    assert r.iloc[:19].isna().all().all()           # 窗口不足仍 NaN
+    assert r.iloc[:12].isna().all().all()           # warmup(2n/3=13 前)仍 NaN
     rng = np.random.default_rng(0)
     vary = pd.DataFrame(rng.normal(0, 1, (60, 2)), index=idx, columns=["a", "b"])
     rv = op_skew(vary, 20)
     assert rv.iloc[25:].notna().all().all()
     assert rv.abs().iloc[25:].mean().mean() > 0.05  # 非常数输入有非常数输出
+
+
+def test_rolling_min_periods_relaxed():
+    """时序算子 min_periods=max(3,2n//3)(2026-08-27):窗口 2/3 有效即可输出——
+    季更字段每季几天断档,原全有或全无语义把 65% 覆盖打成 8%。"""
+    import numpy as np
+    import pandas as pd
+    from engine.operators import op_ma, op_rank_ts
+    idx = pd.date_range("2024-01-01", periods=60)
+    s = pd.DataFrame({"a": np.ones(60)}, index=idx)
+    s.iloc[10:15] = np.nan                       # 5 天洞
+    r = op_ma(s, 20)
+    assert r.iloc[30].notna().all().all()         # 洞后窗口 15/20 有效 ≥ 14 → 输出
+    assert r.iloc[12].isna().all().all()          # 洞内本行仍 NaN(当前值缺失)
+    rt = op_rank_ts(s, 20)
+    assert rt.iloc[30].notna().all().all()        # rank_ts 同样放宽
+    assert rt.iloc[:3].isna().all().all()         # warmup 仍 NaN

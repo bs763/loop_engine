@@ -21,20 +21,32 @@ import pandas as pd
 # 时序算子(unary, 窗口 n)
 # ============================================================================
 
+def _mp(n: int) -> int:
+    """滚动窗口最小有效观测数(2026-08-27):min(n, max(3, 2n//3))——上限钳到 n,
+    否则 n<3 的窗口(如测试里 window=2)会因 min_periods>window 抛 ValueError。
+
+    原 min_periods=n 的全有或全无语义被季更字段的「切换断档」击穿——每只股票
+    每季度都有几天 NaN(ocf_asset 60 天全满的股票占比 0%),任意 20 日窗口几乎
+    必然跨洞 → 全市场 NaN(实测 mul 层 65% → rank_ts 后 8%)。均值/标准差/极值/
+    排名对少量缺失天然稳健,窗口 2/3 有效即可输出(面板滚动计算的标准做法);
+    对无洞的价量字段零影响(全满窗口行为不变)。"""
+    return min(n, max(3, 2 * n // 3))
+
+
 def op_ma(p: pd.DataFrame, n: int) -> pd.DataFrame:
-    return p.rolling(n, min_periods=n).mean()
+    return p.rolling(n, min_periods=_mp(n)).mean()
 
 
 def op_std(p: pd.DataFrame, n: int) -> pd.DataFrame:
-    return p.rolling(n, min_periods=n).std(ddof=1)
+    return p.rolling(n, min_periods=_mp(n)).std(ddof=1)
 
 
 def op_max(p: pd.DataFrame, n: int) -> pd.DataFrame:
-    return p.rolling(n, min_periods=n).max()
+    return p.rolling(n, min_periods=_mp(n)).max()
 
 
 def op_min(p: pd.DataFrame, n: int) -> pd.DataFrame:
-    return p.rolling(n, min_periods=n).min()
+    return p.rolling(n, min_periods=_mp(n)).min()
 
 
 def op_roc(p: pd.DataFrame, n: int) -> pd.DataFrame:
@@ -60,14 +72,14 @@ def op_skew(p: pd.DataFrame, n: int) -> pd.DataFrame:
     季中的窗口几乎全常数,m2=0 → 0/0=NaN 曾致整月覆盖塌陷(实测 skew(op_margin,20)
     单独覆盖仅 32%)。对称退化的极限 = 0,数学上自然;对排名/IC 无害。
     """
-    s1 = p.rolling(n, min_periods=n).sum()
-    s2 = (p * p).rolling(n, min_periods=n).sum()
-    s3 = (p ** 3).rolling(n, min_periods=n).sum()
+    s1 = p.rolling(n, min_periods=_mp(n)).sum()
+    s2 = (p * p).rolling(n, min_periods=_mp(n)).sum()
+    s3 = (p ** 3).rolling(n, min_periods=_mp(n)).sum()
     m2 = (s2 - s1 * s1 / n) / n
     m3 = (s3 - 3.0 * s1 * s2 / n + 2.0 * s1 ** 3 / n ** 2) / n
     with np.errstate(divide="ignore", invalid="ignore"):
         g1 = m3 / m2.pow(1.5)          # m2=0(常数窗)→ 0/0=NaN
-    g1 = g1.fillna(0).where(m2.notna() & p.rolling(n, min_periods=n).count().gt(0))
+    g1 = g1.fillna(0).where(m2.notna() & p.rolling(n, min_periods=_mp(n)).count().gt(0))
     # m2 为 NaN(窗口不足)→ 保持 NaN;m2=0(常数窗)→ 0
     adj = float(np.sqrt(n * (n - 1)) / (n - 2))   # G1 调整系数(窗口范围 ≥10,n>2 恒成立)
     return g1 * adj
@@ -85,7 +97,7 @@ def _ts_rank_last(w: np.ndarray) -> float:
 
 def op_rank_ts(p: pd.DataFrame, n: int) -> pd.DataFrame:
     """时序排名:当前值在过去 n 日的升序百分位 ∈ [0,1]。"""
-    return p.rolling(n, min_periods=n).apply(_ts_rank_last, raw=True)
+    return p.rolling(n, min_periods=_mp(n)).apply(_ts_rank_last, raw=True)
 
 
 # ============================================================================

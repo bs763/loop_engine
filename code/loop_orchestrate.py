@@ -107,6 +107,9 @@ def _coverage_reason(panel: pd.DataFrame, months_ctx: int = 12,
     if len(cov) < 6:
         return None                      # 数据太少不判(保守放行)
     med = cov.rolling(2 * months_ctx + 1, center=True, min_periods=6).median()
+    # 本底下限(2026-08-27):本地中位 <30% 时该区域数据本底太低(如 2018 年财报表
+    # 覆盖仅 14%),月间正常波动即触发塌陷误伤——跳过判定,与 warmup 同哲学
+    med = med.where(med >= 0.30)
     bad = cov[cov < med * ratio_min]
     if len(bad):
         dt, v = bad.idxmin(), float(bad.min())

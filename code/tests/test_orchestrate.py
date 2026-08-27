@@ -220,3 +220,18 @@ def test_gen_src_pass_review_counts(tmp_path):
     assert set(stats.gen_src_total) == {"random"}          # 无父本 → 全 random 源
     assert stats.gen_src_pass_review["random"] <= stats.gen_src_total["random"]
     assert sum(stats.gen_src_pass_review.values()) == stats.n_pass_review
+
+
+def test_coverage_gate_low_baseline_skipped():
+    """覆盖率闸低本底跳过(2026-08-27):本地中位 <30% 的月份不判塌陷——
+    2018 年财报表覆盖仅 14%,月间正常波动即 8%<8.4% 误伤。"""
+    from loop_orchestrate import _coverage_reason
+    idx = pd.date_range("2017-06-01", periods=1100, freq="B")
+    rng = np.random.default_rng(0)
+    df = pd.DataFrame(rng.normal(0, 1, (1100, 5)), index=idx)
+    low = (idx >= "2017-08-01") & (idx <= "2019-06-30")     # 早期低覆盖区
+    mask = rng.random(df.loc[low].shape) < 0.85
+    df.loc[low] = df.loc[low].mask(mask)
+    hole = (idx >= "2018-10-01") & (idx <= "2018-10-31")    # 低本底区里的整月洞
+    df.loc[hole, :] = np.nan
+    assert _coverage_reason(df) is None

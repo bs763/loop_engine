@@ -1,6 +1,6 @@
 {
  "version": 1,
- "updated_iter": 623,
+ "updated_iter": 625,
  "patterns": {
   "sub(std(rank_ts(add(FLD, FLD), N), N), add(std(rank_cs(FLD), N), roc(max(FLD, N), N)))": {
    "fails": 3,
@@ -2763,15 +2763,16 @@
    }
   },
   "ma(roc(std(FLD, N), N), N)": {
-   "fails": 2,
+   "fails": 3,
    "occupied": 0,
    "stored": 0,
-   "last_iter": 182,
+   "last_iter": 625,
    "top_rules": {
     "1": 2,
     "14": 1,
     "2": 2,
-    "6": 2
+    "6": 2,
+    "bt_err": 1
    }
   },
   "div(delta(rank_cs(FLD), N), FLD)": {
@@ -3307,10 +3308,10 @@
    }
   },
   "ma(zscore(std(FLD, N)), N)": {
-   "fails": 31,
+   "fails": 33,
    "occupied": 2,
    "stored": 4,
-   "last_iter": 589,
+   "last_iter": 624,
    "top_rules": {
     "13": 15,
     "6": 27,
@@ -3323,7 +3324,7 @@
     "8": 3,
     "12": 8,
     "3": 3,
-    "bt_err": 2
+    "bt_err": 4
    }
   },
   "rank_cs(rank_ts(div(mul(FLD, FLD), rank_cs(FLD)), N))": {
@@ -3987,22 +3988,22 @@
    }
   },
   "zscore(ma(skew(FLD, N), N))": {
-   "fails": 7,
+   "fails": 8,
    "occupied": 0,
    "stored": 0,
-   "last_iter": 607,
+   "last_iter": 625,
    "top_rules": {
-    "1": 7,
-    "2": 4,
-    "6": 6,
+    "1": 8,
+    "2": 5,
+    "6": 7,
     "13": 4,
-    "4": 2,
-    "5": 2,
-    "7": 2,
-    "8": 2,
-    "12": 1,
-    "14": 2,
-    "3": 1
+    "4": 3,
+    "5": 3,
+    "7": 3,
+    "8": 3,
+    "12": 2,
+    "14": 3,
+    "3": 2
    }
   },
   "div(rank_cs(std(FLD, N)), delta(sub(FLD, FLD), N))": {
@@ -6215,13 +6216,24 @@
    }
   },
   "std(min(FLD, N), N)": {
-   "fails": 5,
+   "fails": 6,
    "occupied": 0,
    "stored": 0,
-   "last_iter": 575,
+   "last_iter": 625,
    "top_rules": {
     "review": 3,
-    "bt_err": 2
+    "bt_err": 2,
+    "1": 1,
+    "12": 1,
+    "13": 1,
+    "14": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1,
+    "5": 1,
+    "6": 1,
+    "7": 1,
+    "8": 1
    }
   },
   "roc(roc(FLD, N), N)": {
@@ -10893,22 +10905,22 @@
    }
   },
   "rank_cs(roc(rank_cs(FLD), N))": {
-   "fails": 29,
+   "fails": 30,
    "occupied": 5,
    "stored": 1,
-   "last_iter": 618,
+   "last_iter": 624,
    "top_rules": {
-    "12": 17,
-    "2": 23,
-    "4": 16,
-    "5": 18,
-    "6": 22,
-    "7": 16,
-    "8": 17,
-    "1": 17,
-    "14": 14,
-    "3": 15,
-    "13": 19,
+    "12": 18,
+    "2": 24,
+    "4": 17,
+    "5": 19,
+    "6": 23,
+    "7": 17,
+    "8": 18,
+    "1": 18,
+    "14": 15,
+    "3": 16,
+    "13": 20,
     "16": 2,
     "bt_err": 3
    }
@@ -16694,11 +16706,13 @@
    "top_rules": {}
   },
   "add(zscore(std(rank_cs(FLD), N)), zscore(std(FLD, N)))": {
-   "fails": 0,
+   "fails": 1,
    "occupied": 3,
    "stored": 0,
-   "last_iter": 289,
-   "top_rules": {}
+   "last_iter": 624,
+   "top_rules": {
+    "review": 1
+   }
   },
   "div(roc(FLD, N), max(div(min(FLD, N), rank_cs(FLD)), N))": {
    "fails": 1,
@@ -28090,21 +28104,21 @@
    }
   },
   "delta(min(std(FLD, N), N), N)": {
-   "fails": 1,
+   "fails": 2,
    "occupied": 0,
    "stored": 0,
-   "last_iter": 185,
+   "last_iter": 624,
    "top_rules": {
-    "1": 1,
-    "12": 1,
+    "1": 2,
+    "12": 2,
     "13": 1,
-    "14": 1,
-    "2": 1,
-    "3": 1,
-    "4": 1,
+    "14": 2,
+    "2": 2,
+    "3": 2,
+    "4": 2,
     "5": 1,
-    "6": 1,
-    "7": 1,
+    "6": 2,
+    "7": 2,
     "8": 1
    }
   },
@@ -29302,19 +29316,22 @@
    }
   },
   "min(zscore(delta(FLD, N)), N)": {
-   "fails": 3,
+   "fails": 4,
    "occupied": 0,
    "stored": 0,
-   "last_iter": 259,
+   "last_iter": 625,
    "top_rules": {
-    "2": 3,
-    "6": 3,
-    "5": 2,
-    "7": 2,
-    "1": 1,
-    "13": 1,
-    "14": 1,
-    "8": 1
+    "2": 4,
+    "6": 4,
+    "5": 3,
+    "7": 3,
+    "1": 2,
+    "13": 2,
+    "14": 2,
+    "8": 2,
+    "12": 1,
+    "3": 1,
+    "4": 1
    }
   },
   "sub(std(rank_ts(FLD, N), N), add(zscore(std(FLD, N)), FLD))": {
@@ -30406,20 +30423,20 @@
    }
   },
   "ma(zscore(rank_ts(FLD, N)), N)": {
-   "fails": 4,
+   "fails": 5,
    "occupied": 0,
    "stored": 0,
-   "last_iter": 623,
+   "last_iter": 625,
    "top_rules": {
-    "1": 3,
-    "12": 3,
-    "13": 4,
-    "14": 3,
-    "2": 4,
-    "3": 3,
-    "4": 3,
-    "5": 4,
-    "6": 4,
+    "1": 4,
+    "12": 4,
+    "13": 5,
+    "14": 4,
+    "2": 5,
+    "3": 4,
+    "4": 4,
+    "5": 5,
+    "6": 5,
     "7": 3,
     "8": 3
    }
@@ -37358,16 +37375,18 @@
    }
   },
   "ma(rank_cs(zscore(FLD)), N)": {
-   "fails": 3,
+   "fails": 4,
    "occupied": 0,
    "stored": 0,
-   "last_iter": 550,
+   "last_iter": 624,
    "top_rules": {
     "review": 1,
-    "1": 2,
-    "14": 2,
-    "2": 2,
-    "6": 2
+    "1": 3,
+    "14": 3,
+    "2": 3,
+    "6": 3,
+    "12": 1,
+    "4": 1
    }
   },
   "min(rank_cs(std(add(FLD, FLD), N)), N)": {
@@ -37516,22 +37535,22 @@
    }
   },
   "rank_cs(mul(roc(FLD, N), rank_cs(FLD)))": {
-   "fails": 1,
+   "fails": 2,
    "occupied": 0,
    "stored": 0,
-   "last_iter": 211,
+   "last_iter": 625,
    "top_rules": {
-    "1": 1,
-    "12": 1,
-    "13": 1,
-    "14": 1,
-    "2": 1,
-    "3": 1,
-    "4": 1,
-    "5": 1,
-    "6": 1,
-    "7": 1,
-    "8": 1
+    "1": 2,
+    "12": 2,
+    "13": 2,
+    "14": 2,
+    "2": 2,
+    "3": 2,
+    "4": 2,
+    "5": 2,
+    "6": 2,
+    "7": 2,
+    "8": 2
    }
   },
   "std(ma(ma(div(FLD, FLD), N), N), N)": {
@@ -38071,24 +38090,24 @@
    }
   },
   "skew(rank_cs(FLD), N)": {
-   "fails": 9,
+   "fails": 10,
    "occupied": 0,
    "stored": 0,
-   "last_iter": 516,
+   "last_iter": 625,
    "top_rules": {
     "review": 3,
-    "1": 4,
+    "1": 5,
     "bt_err": 2,
-    "12": 2,
+    "12": 3,
     "13": 2,
-    "14": 1,
-    "2": 1,
-    "3": 1,
-    "4": 1,
-    "5": 1,
-    "6": 1,
-    "7": 1,
-    "8": 1
+    "14": 2,
+    "2": 2,
+    "3": 2,
+    "4": 2,
+    "5": 2,
+    "6": 2,
+    "7": 2,
+    "8": 2
    }
   },
   "div(std(std(FLD, N), N), delta(zscore(div(FLD, FLD)), N))": {
@@ -39263,17 +39282,17 @@
    }
   },
   "zscore(rank_ts(FLD, N))": {
-   "fails": 9,
+   "fails": 10,
    "occupied": 0,
    "stored": 0,
-   "last_iter": 601,
+   "last_iter": 625,
    "top_rules": {
     "review": 3,
     "1": 5,
-    "12": 6,
-    "13": 6,
+    "12": 7,
+    "13": 7,
     "14": 2,
-    "2": 5,
+    "2": 6,
     "3": 3,
     "4": 3,
     "5": 3,
@@ -40807,18 +40826,21 @@
    "top_rules": {}
   },
   "zscore(ma(mul(FLD, FLD), N))": {
-   "fails": 1,
+   "fails": 2,
    "occupied": 0,
    "stored": 0,
-   "last_iter": 220,
+   "last_iter": 625,
    "top_rules": {
-    "1": 1,
-    "14": 1,
-    "2": 1,
-    "5": 1,
-    "6": 1,
-    "7": 1,
-    "8": 1
+    "1": 2,
+    "14": 2,
+    "2": 2,
+    "5": 2,
+    "6": 2,
+    "7": 2,
+    "8": 2,
+    "12": 1,
+    "13": 1,
+    "4": 1
    }
   },
   "zscore(sub(rank_cs(min(FLD, N)), sub(FLD, skew(FLD, N))))": {
@@ -47278,17 +47300,18 @@
    }
   },
   "add(zscore(std(rank_cs(FLD), N)), add(rank_cs(FLD), rank_cs(min(FLD, N))))": {
-   "fails": 5,
+   "fails": 6,
    "occupied": 27,
    "stored": 1,
-   "last_iter": 364,
+   "last_iter": 625,
    "top_rules": {
     "2": 3,
     "6": 3,
     "1": 3,
     "12": 1,
     "13": 1,
-    "4": 1
+    "4": 1,
+    "review": 1
    }
   },
   "add(zscore(skew(FLD, N)), add(rank_cs(FLD), rank_cs(max(FLD, N))))": {
@@ -60862,16 +60885,16 @@
    }
   },
   "rank_cs(ma(FLD, N))": {
-   "fails": 17,
+   "fails": 18,
    "occupied": 2,
    "stored": 0,
-   "last_iter": 602,
+   "last_iter": 624,
    "top_rules": {
     "review": 7,
     "bt_err": 5,
     "1": 4,
     "12": 5,
-    "13": 5,
+    "13": 6,
     "14": 3,
     "2": 5,
     "4": 4,
@@ -68590,12 +68613,12 @@
    }
   },
   "zscore(std(max(FLD, N), N))": {
-   "fails": 2,
+   "fails": 3,
    "occupied": 0,
    "stored": 0,
-   "last_iter": 312,
+   "last_iter": 624,
    "top_rules": {
-    "1": 2,
+    "1": 3,
     "2": 2,
     "6": 2,
     "14": 1,
@@ -88300,21 +88323,21 @@
    }
   },
   "sub(rank_cs(ma(FLD, N)), rank_cs(ma(FLD, N)))": {
-   "fails": 48,
+   "fails": 49,
    "occupied": 4,
    "stored": 1,
-   "last_iter": 623,
+   "last_iter": 624,
    "top_rules": {
     "review": 2,
-    "1": 33,
+    "1": 34,
     "12": 27,
-    "13": 37,
-    "14": 23,
-    "2": 41,
+    "13": 38,
+    "14": 24,
+    "2": 42,
     "3": 15,
     "4": 20,
     "5": 15,
-    "6": 40,
+    "6": 41,
     "7": 14,
     "8": 14,
     "bt_err": 1
@@ -91143,16 +91166,16 @@
    }
   },
   "add(max(skew(FLD, N), N), zscore(skew(FLD, N)))": {
-   "fails": 23,
+   "fails": 24,
    "occupied": 9,
    "stored": 2,
-   "last_iter": 621,
+   "last_iter": 625,
    "top_rules": {
     "1": 16,
     "2": 6,
     "12": 3,
     "6": 7,
-    "bt_err": 7,
+    "bt_err": 8,
     "13": 1,
     "14": 1,
     "4": 1,
@@ -95386,12 +95409,12 @@
    }
   },
   "max(min(ma(FLD, N), N), N)": {
-   "fails": 2,
+   "fails": 3,
    "occupied": 0,
    "stored": 0,
-   "last_iter": 423,
+   "last_iter": 624,
    "top_rules": {
-    "review": 2
+    "review": 3
    }
   },
   "ma(sub(FLD, sub(FLD, FLD)), N)": {
@@ -95931,15 +95954,15 @@
    }
   },
   "add(add(max(skew(FLD, N), N), rank_cs(FLD)), roc(rank_cs(FLD), N))": {
-   "fails": 61,
+   "fails": 62,
    "occupied": 2,
    "stored": 2,
-   "last_iter": 614,
+   "last_iter": 624,
    "top_rules": {
     "1": 3,
     "14": 2,
     "2": 3,
-    "review": 55
+    "review": 56
    }
   },
   "skew(div(div(FLD, FLD), ma(FLD, N)), N)": {
@@ -99091,23 +99114,23 @@
    }
   },
   "add(add(rank_cs(FLD), rank_cs(FLD)), rank_cs(skew(FLD, N)))": {
-   "fails": 12,
+   "fails": 14,
    "occupied": 16,
    "stored": 1,
-   "last_iter": 623,
+   "last_iter": 624,
    "top_rules": {
-    "12": 5,
-    "1": 6,
-    "2": 5,
-    "6": 6,
-    "14": 3,
-    "4": 2,
+    "12": 6,
+    "1": 7,
+    "2": 6,
+    "6": 7,
+    "14": 4,
+    "4": 3,
     "13": 1,
-    "5": 1,
-    "7": 1,
-    "8": 1,
+    "5": 2,
+    "7": 2,
+    "8": 2,
     "3": 1,
-    "review": 4
+    "review": 5
    }
   },
   "ma(zscore(rank_cs(std(FLD, N))), N)": {
@@ -103093,12 +103116,12 @@
    }
   },
   "add(max(rank_cs(div(FLD, FLD)), N), rank_cs(roc(rank_cs(FLD), N)))": {
-   "fails": 4,
+   "fails": 5,
    "occupied": 0,
    "stored": 0,
-   "last_iter": 601,
+   "last_iter": 624,
    "top_rules": {
-    "review": 3,
+    "review": 4,
     "1": 1,
     "2": 1,
     "6": 1
@@ -109463,15 +109486,17 @@
    }
   },
   "max(ma(delta(FLD, N), N), N)": {
-   "fails": 1,
+   "fails": 2,
    "occupied": 0,
    "stored": 0,
-   "last_iter": 422,
+   "last_iter": 624,
    "top_rules": {
-    "13": 1,
-    "2": 1,
+    "13": 2,
+    "2": 2,
     "5": 1,
-    "6": 1
+    "6": 2,
+    "12": 1,
+    "4": 1
    }
   },
   "skew(delta(zscore(FLD), N), N)": {
@@ -113196,20 +113221,20 @@
    "top_rules": {}
   },
   "zscore(sub(rank_cs(ma(FLD, N)), rank_cs(FLD)))": {
-   "fails": 2,
+   "fails": 3,
    "occupied": 0,
    "stored": 0,
-   "last_iter": 537,
+   "last_iter": 624,
    "top_rules": {
-    "1": 2,
+    "1": 3,
     "12": 1,
-    "13": 1,
-    "14": 2,
-    "2": 2,
+    "13": 2,
+    "14": 3,
+    "2": 3,
     "3": 1,
     "4": 2,
     "5": 1,
-    "6": 2,
+    "6": 3,
     "7": 1,
     "8": 1
    }
@@ -114228,9 +114253,9 @@
   },
   "add(add(FLD, rank_cs(ma(FLD, N))), rank_cs(skew(FLD, N)))": {
    "fails": 0,
-   "occupied": 1,
+   "occupied": 2,
    "stored": 0,
-   "last_iter": 438,
+   "last_iter": 625,
    "top_rules": {}
   },
   "rank_cs(div(ma(FLD, N), std(FLD, N)))": {
@@ -114531,9 +114556,9 @@
   },
   "add(add(rank_cs(ma(FLD, N)), zscore(rank_cs(FLD))), zscore(std(FLD, N)))": {
    "fails": 1,
-   "occupied": 3,
+   "occupied": 4,
    "stored": 0,
-   "last_iter": 566,
+   "last_iter": 625,
    "top_rules": {
     "12": 1
    }
@@ -114672,12 +114697,14 @@
    }
   },
   "add(rank_cs(FLD), zscore(skew(rank_cs(FLD), N)))": {
-   "fails": 1,
+   "fails": 2,
    "occupied": 2,
    "stored": 0,
-   "last_iter": 520,
+   "last_iter": 625,
    "top_rules": {
-    "1": 1
+    "1": 2,
+    "2": 1,
+    "6": 1
    }
   },
   "add(add(rank_cs(FLD), rank_cs(FLD)), zscore(ma(FLD, N)))": {
@@ -115079,12 +115106,12 @@
    }
   },
   "add(rank_cs(ma(FLD, N)), add(rank_cs(FLD), roc(rank_cs(FLD), N)))": {
-   "fails": 1,
+   "fails": 2,
    "occupied": 0,
    "stored": 0,
-   "last_iter": 444,
+   "last_iter": 624,
    "top_rules": {
-    "review": 1
+    "review": 2
    }
   },
   "zscore(ma(std(skew(FLD, N), N), N))": {
@@ -116578,13 +116605,13 @@
    }
   },
   "add(add(FLD, rank_cs(FLD)), rank_cs(skew(FLD, N)))": {
-   "fails": 4,
+   "fails": 5,
    "occupied": 0,
    "stored": 0,
-   "last_iter": 615,
+   "last_iter": 624,
    "top_rules": {
     "12": 3,
-    "review": 1
+    "review": 2
    }
   },
   "sub(zscore(rank_ts(FLD, N)), zscore(rank_ts(FLD, N)))": {
@@ -119692,11 +119719,18 @@
    }
   },
   "add(add(max(skew(FLD, N), N), zscore(FLD)), zscore(skew(FLD, N)))": {
-   "fails": 0,
+   "fails": 1,
    "occupied": 3,
    "stored": 0,
-   "last_iter": 561,
-   "top_rules": {}
+   "last_iter": 625,
+   "top_rules": {
+    "1": 1,
+    "12": 1,
+    "2": 1,
+    "5": 1,
+    "6": 1,
+    "7": 1
+   }
   },
   "mul(ma(delta(sub(FLD, FLD), N), N), rank_ts(div(std(FLD, N), skew(FLD, N)), N))": {
    "fails": 1,
@@ -121922,22 +121956,22 @@
    }
   },
   "add(rank_cs(ma(FLD, N)), zscore(FLD))": {
-   "fails": 1,
+   "fails": 2,
    "occupied": 4,
    "stored": 0,
-   "last_iter": 602,
+   "last_iter": 625,
    "top_rules": {
-    "1": 1,
-    "12": 1,
-    "13": 1,
-    "14": 1,
-    "2": 1,
+    "1": 2,
+    "12": 2,
+    "13": 2,
+    "14": 2,
+    "2": 2,
     "3": 1,
-    "4": 1,
-    "5": 1,
-    "6": 1,
-    "7": 1,
-    "8": 1
+    "4": 2,
+    "5": 2,
+    "6": 2,
+    "7": 2,
+    "8": 2
    }
   },
   "add(add(rank_cs(ma(FLD, N)), zscore(rank_cs(FLD))), zscore(skew(delta(FLD, N), N)))": {
@@ -124566,12 +124600,12 @@
    }
   },
   "add(add(rank_cs(FLD), FLD), rank_cs(skew(FLD, N)))": {
-   "fails": 2,
+   "fails": 3,
    "occupied": 0,
    "stored": 0,
-   "last_iter": 486,
+   "last_iter": 625,
    "top_rules": {
-    "review": 2
+    "review": 3
    }
   },
   "add(add(rank_cs(ma(FLD, N)), roc(rank_cs(FLD), N)), zscore(skew(FLD, N)))": {
@@ -129663,9 +129697,9 @@
   },
   "add(add(zscore(FLD), zscore(rank_cs(FLD))), zscore(std(skew(FLD, N), N)))": {
    "fails": 1,
-   "occupied": 2,
+   "occupied": 3,
    "stored": 0,
-   "last_iter": 613,
+   "last_iter": 625,
    "top_rules": {
     "12": 1
    }
@@ -129717,10 +129751,10 @@
    }
   },
   "add(add(zscore(FLD), zscore(rank_cs(FLD))), zscore(std(rank_cs(FLD), N)))": {
-   "fails": 12,
+   "fails": 13,
    "occupied": 22,
    "stored": 1,
-   "last_iter": 623,
+   "last_iter": 624,
    "top_rules": {
     "bt_err": 2,
     "12": 5,
@@ -129731,7 +129765,7 @@
     "7": 3,
     "8": 3,
     "1": 2,
-    "review": 3
+    "review": 4
    }
   },
   "add(zscore(skew(FLD, N)), zscore(max(delta(FLD, N), N)))": {
@@ -130093,9 +130127,9 @@
   },
   "add(add(rank_cs(skew(FLD, N)), rank_cs(sub(FLD, FLD))), skew(FLD, N))": {
    "fails": 1,
-   "occupied": 0,
+   "occupied": 1,
    "stored": 0,
-   "last_iter": 511,
+   "last_iter": 624,
    "top_rules": {
     "12": 1
    }
@@ -135404,18 +135438,22 @@
    }
   },
   "rank_cs(sub(roc(FLD, N), rank_cs(FLD)))": {
-   "fails": 3,
+   "fails": 4,
    "occupied": 0,
    "stored": 0,
-   "last_iter": 600,
+   "last_iter": 625,
    "top_rules": {
-    "1": 3,
-    "14": 3,
-    "2": 1,
-    "4": 1,
-    "6": 3,
-    "12": 1,
-    "13": 1
+    "1": 4,
+    "14": 4,
+    "2": 2,
+    "4": 2,
+    "6": 4,
+    "12": 2,
+    "13": 2,
+    "3": 1,
+    "5": 1,
+    "7": 1,
+    "8": 1
    }
   },
   "zscore(add(rank_ts(std(FLD, N), N), min(FLD, N)))": {
@@ -136364,9 +136402,9 @@
   },
   "add(add(max(skew(FLD, N), N), zscore(skew(FLD, N))), zscore(skew(rank_cs(FLD), N)))": {
    "fails": 25,
-   "occupied": 35,
+   "occupied": 37,
    "stored": 2,
-   "last_iter": 622,
+   "last_iter": 625,
    "top_rules": {
     "16": 1,
     "bt_err": 7,
@@ -139296,9 +139334,9 @@
   },
   "add(ma(zscore(FLD), N), rank_cs(skew(FLD, N)))": {
    "fails": 1,
-   "occupied": 1,
+   "occupied": 2,
    "stored": 0,
-   "last_iter": 549,
+   "last_iter": 624,
    "top_rules": {
     "1": 1,
     "14": 1,
@@ -140248,18 +140286,18 @@
    }
   },
   "add(rank_cs(ma(FLD, N)), sub(rank_cs(ma(FLD, N)), rank_cs(ma(FLD, N))))": {
-   "fails": 10,
+   "fails": 11,
    "occupied": 0,
    "stored": 0,
-   "last_iter": 609,
+   "last_iter": 625,
    "top_rules": {
-    "1": 10,
-    "13": 8,
-    "6": 10,
-    "2": 8,
-    "14": 6,
-    "12": 3,
-    "4": 2
+    "1": 11,
+    "13": 9,
+    "6": 11,
+    "2": 9,
+    "14": 7,
+    "12": 4,
+    "4": 3
    }
   },
   "add(rank_cs(roc(FLD, N)), sub(rank_cs(ma(FLD, N)), rank_cs(FLD)))": {
@@ -140477,22 +140515,22 @@
    }
   },
   "rank_cs(roc(rank_cs(skew(FLD, N)), N))": {
-   "fails": 3,
+   "fails": 4,
    "occupied": 0,
    "stored": 0,
-   "last_iter": 573,
+   "last_iter": 624,
    "top_rules": {
-    "1": 3,
+    "1": 4,
     "12": 2,
     "13": 3,
     "14": 3,
-    "2": 3,
+    "2": 4,
     "3": 3,
     "4": 3,
-    "5": 3,
-    "6": 3,
-    "7": 3,
-    "8": 3
+    "5": 4,
+    "6": 4,
+    "7": 4,
+    "8": 4
    }
   },
   "add(rank_cs(ma(FLD, N)), sub(rank_cs(roc(FLD, N)), rank_cs(FLD)))": {
@@ -140686,9 +140724,9 @@
   },
   "add(add(rank_cs(skew(FLD, N)), rank_cs(skew(FLD, N))), rank_cs(sub(FLD, FLD)))": {
    "fails": 48,
-   "occupied": 22,
+   "occupied": 26,
    "stored": 2,
-   "last_iter": 623,
+   "last_iter": 625,
    "top_rules": {
     "12": 16,
     "2": 21,
@@ -142023,22 +142061,22 @@
    }
   },
   "sub(rank_cs(roc(FLD, N)), rank_cs(std(FLD, N)))": {
-   "fails": 4,
+   "fails": 6,
    "occupied": 0,
    "stored": 0,
-   "last_iter": 609,
+   "last_iter": 625,
    "top_rules": {
-    "1": 3,
-    "12": 3,
-    "13": 3,
-    "14": 3,
-    "2": 3,
-    "3": 3,
-    "4": 3,
-    "5": 3,
-    "6": 4,
-    "7": 3,
-    "8": 3
+    "1": 5,
+    "12": 5,
+    "13": 5,
+    "14": 5,
+    "2": 5,
+    "3": 5,
+    "4": 5,
+    "5": 5,
+    "6": 6,
+    "7": 5,
+    "8": 5
    }
   },
   "sub(zscore(rank_ts(FLD, N)), rank_cs(FLD))": {
@@ -143939,13 +143977,13 @@
    }
   },
   "rank_cs(roc(rank_cs(zscore(FLD)), N))": {
-   "fails": 1,
+   "fails": 2,
    "occupied": 2,
    "stored": 0,
-   "last_iter": 597,
+   "last_iter": 624,
    "top_rules": {
     "13": 1,
-    "2": 1,
+    "2": 2,
     "6": 1
    }
   },
@@ -146837,20 +146875,20 @@
    }
   },
   "add(rank_cs(ma(FLD, N)), sub(rank_cs(ma(FLD, N)), rank_cs(FLD)))": {
-   "fails": 1,
+   "fails": 2,
    "occupied": 0,
    "stored": 0,
-   "last_iter": 559,
+   "last_iter": 624,
    "top_rules": {
-    "1": 1,
-    "12": 1,
-    "13": 1,
-    "14": 1,
-    "2": 1,
+    "1": 2,
+    "12": 2,
+    "13": 2,
+    "14": 2,
+    "2": 2,
     "3": 1,
-    "4": 1,
+    "4": 2,
     "5": 1,
-    "6": 1,
+    "6": 2,
     "7": 1,
     "8": 1
    }
@@ -147995,18 +148033,18 @@
    }
   },
   "std(mul(min(FLD, N), zscore(FLD)), N)": {
-   "fails": 20,
-   "occupied": 11,
+   "fails": 21,
+   "occupied": 12,
    "stored": 1,
-   "last_iter": 621,
+   "last_iter": 625,
    "top_rules": {
-    "1": 19,
+    "1": 20,
     "12": 11,
-    "13": 16,
+    "13": 17,
     "14": 12,
-    "2": 17,
+    "2": 18,
     "4": 12,
-    "6": 18,
+    "6": 19,
     "bt_err": 1,
     "5": 3,
     "7": 2,
@@ -151548,22 +151586,22 @@
    }
   },
   "add(zscore(ma(FLD, N)), zscore(rank_ts(skew(FLD, N), N)))": {
-   "fails": 4,
+   "fails": 5,
    "occupied": 0,
    "stored": 0,
-   "last_iter": 609,
+   "last_iter": 625,
    "top_rules": {
-    "1": 4,
-    "12": 4,
-    "13": 4,
-    "14": 4,
-    "2": 4,
-    "3": 4,
-    "4": 4,
-    "5": 4,
-    "6": 4,
-    "7": 4,
-    "8": 4
+    "1": 5,
+    "12": 5,
+    "13": 5,
+    "14": 5,
+    "2": 5,
+    "3": 5,
+    "4": 5,
+    "5": 5,
+    "6": 5,
+    "7": 5,
+    "8": 5
    }
   },
   "min(std(roc(min(FLD, N), N), N), N)": {
@@ -152795,9 +152833,9 @@
   },
   "std(mul(FLD, zscore(FLD)), N)": {
    "fails": 2,
-   "occupied": 1,
+   "occupied": 2,
    "stored": 0,
-   "last_iter": 619,
+   "last_iter": 625,
    "top_rules": {
     "13": 2
    }
@@ -155207,9 +155245,9 @@
   },
   "add(add(zscore(FLD), zscore(rank_cs(FLD))), zscore(std(zscore(FLD), N)))": {
    "fails": 1,
-   "occupied": 0,
+   "occupied": 1,
    "stored": 0,
-   "last_iter": 590,
+   "last_iter": 625,
    "top_rules": {
     "2": 1,
     "6": 1
@@ -155280,9 +155318,9 @@
   },
   "add(max(zscore(skew(FLD, N)), N), zscore(std(zscore(FLD), N)))": {
    "fails": 11,
-   "occupied": 14,
+   "occupied": 15,
    "stored": 1,
-   "last_iter": 623,
+   "last_iter": 624,
    "top_rules": {
     "2": 7,
     "6": 5,
@@ -161342,16 +161380,16 @@
    }
   },
   "add(zscore(ma(FLD, N)), zscore(ma(FLD, N)))": {
-   "fails": 1,
+   "fails": 2,
    "occupied": 0,
    "stored": 0,
-   "last_iter": 609,
+   "last_iter": 625,
    "top_rules": {
     "1": 1,
     "12": 1,
-    "13": 1,
+    "13": 2,
     "14": 1,
-    "2": 1,
+    "2": 2,
     "6": 1
    }
   },
@@ -161721,21 +161759,21 @@
    }
   },
   "add(rank_cs(ma(FLD, N)), sub(rank_cs(ma(FLD, N)), rank_cs(delta(FLD, N))))": {
-   "fails": 7,
+   "fails": 8,
    "occupied": 0,
    "stored": 0,
-   "last_iter": 623,
+   "last_iter": 624,
    "top_rules": {
-    "1": 7,
-    "12": 7,
-    "13": 7,
-    "14": 7,
-    "2": 7,
-    "3": 7,
-    "4": 7,
-    "5": 7,
-    "6": 7,
-    "8": 3
+    "1": 8,
+    "12": 8,
+    "13": 8,
+    "14": 8,
+    "2": 8,
+    "3": 8,
+    "4": 8,
+    "5": 8,
+    "6": 8,
+    "8": 4
    }
   },
   "add(rank_cs(ma(FLD, N)), rank_cs(ma(delta(FLD, N), N)))": {
@@ -162100,22 +162138,22 @@
    }
   },
   "add(rank_cs(ma(sub(FLD, FLD), N)), rank_cs(ma(delta(FLD, N), N)))": {
-   "fails": 2,
+   "fails": 3,
    "occupied": 0,
    "stored": 0,
-   "last_iter": 614,
+   "last_iter": 624,
    "top_rules": {
-    "1": 2,
-    "12": 2,
-    "13": 2,
-    "14": 2,
-    "2": 2,
-    "3": 1,
-    "4": 1,
-    "5": 1,
-    "6": 2,
+    "1": 3,
+    "12": 3,
+    "13": 3,
+    "14": 3,
+    "2": 3,
+    "3": 2,
+    "4": 2,
+    "5": 2,
+    "6": 3,
     "7": 2,
-    "8": 1
+    "8": 2
    }
   },
   "div(rank_cs(sub(FLD, FLD)), add(FLD, sub(FLD, FLD)))": {
@@ -163008,17 +163046,17 @@
    }
   },
   "sub(rank_cs(ma(FLD, N)), rank_cs(delta(FLD, N)))": {
-   "fails": 3,
+   "fails": 4,
    "occupied": 0,
    "stored": 0,
-   "last_iter": 623,
+   "last_iter": 624,
    "top_rules": {
-    "1": 3,
-    "12": 3,
-    "13": 3,
-    "2": 3,
-    "4": 2,
-    "6": 3
+    "1": 4,
+    "12": 4,
+    "13": 4,
+    "2": 4,
+    "4": 3,
+    "6": 4
    }
   },
   "mul(zscore(max(FLD, N)), max(std(FLD, N), N))": {
@@ -166405,11 +166443,20 @@
    }
   },
   "add(add(rank_cs(skew(FLD, N)), rank_cs(skew(FLD, N))), rank_cs(sub(FLD, delta(FLD, N))))": {
-   "fails": 0,
+   "fails": 1,
    "occupied": 1,
    "stored": 0,
-   "last_iter": 621,
-   "top_rules": {}
+   "last_iter": 624,
+   "top_rules": {
+    "1": 1,
+    "12": 1,
+    "2": 1,
+    "4": 1,
+    "5": 1,
+    "6": 1,
+    "7": 1,
+    "8": 1
+   }
   },
   "delta(add(rank_ts(ma(FLD, N), N), FLD), N)": {
    "fails": 1,
@@ -167448,6 +167495,849 @@
    "occupied": 0,
    "stored": 0,
    "last_iter": 623,
+   "top_rules": {
+    "1": 1,
+    "12": 1,
+    "13": 1,
+    "14": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1,
+    "5": 1,
+    "6": 1,
+    "7": 1,
+    "8": 1
+   }
+  },
+  "zscore(mul(roc(rank_cs(FLD), N), zscore(rank_cs(FLD))))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "review": 1
+   }
+  },
+  "skew(mul(roc(rank_cs(FLD), N), add(FLD, FLD)), N)": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "review": 1
+   }
+  },
+  "sub(div(roc(div(FLD, FLD), N), sub(skew(FLD, N), skew(FLD, N))), div(sub(rank_cs(FLD), FLD), std(div(FLD, FLD), N)))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "review": 1
+   }
+  },
+  "div(add(ma(delta(FLD, N), N), rank_cs(mul(FLD, FLD))), div(min(zscore(FLD), N), min(min(FLD, N), N)))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "review": 1
+   }
+  },
+  "add(add(zscore(FLD), zscore(rank_cs(FLD))), zscore(std(std(FLD, N), N)))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "review": 1
+   }
+  },
+  "roc(mul(std(sub(FLD, FLD), N), std(delta(FLD, N), N)), N)": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "review": 1
+   }
+  },
+  "sub(add(min(add(FLD, FLD), N), ma(add(FLD, FLD), N)), div(min(FLD, N), min(FLD, N)))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "review": 1
+   }
+  },
+  "skew(ma(std(div(FLD, FLD), N), N), N)": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "review": 1
+   }
+  },
+  "sub(rank_cs(zscore(roc(FLD, N))), mul(mul(FLD, delta(FLD, N)), std(FLD, N)))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "review": 1
+   }
+  },
+  "sub(delta(roc(rank_cs(FLD), N), N), roc(FLD, N))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "review": 1
+   }
+  },
+  "add(add(rank_cs(skew(FLD, N)), rank_cs(skew(FLD, N))), rank_cs(sub(std(FLD, N), FLD)))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "review": 1
+   }
+  },
+  "ma(ma(min(rank_ts(FLD, N), N), N), N)": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "review": 1
+   }
+  },
+  "sub(std(div(FLD, FLD), N), add(min(FLD, N), rank_cs(roc(FLD, N))))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "review": 1
+   }
+  },
+  "sub(div(roc(FLD, N), sub(FLD, std(FLD, N))), zscore(skew(FLD, N)))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "review": 1
+   }
+  },
+  "mul(min(delta(FLD, N), N), add(skew(FLD, N), div(mul(FLD, FLD), FLD)))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "review": 1
+   }
+  },
+  "min(delta(add(std(FLD, N), FLD), N), N)": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "review": 1
+   }
+  },
+  "ma(sub(mul(add(FLD, FLD), skew(FLD, N)), zscore(FLD)), N)": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "review": 1
+   }
+  },
+  "add(rank_cs(add(FLD, FLD)), mul(zscore(FLD), mul(FLD, rank_cs(FLD))))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "review": 1
+   }
+  },
+  "skew(rank_cs(std(roc(FLD, N), N)), N)": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "1": 1,
+    "12": 1,
+    "13": 1,
+    "14": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1,
+    "5": 1,
+    "6": 1,
+    "7": 1,
+    "8": 1
+   }
+  },
+  "delta(delta(add(FLD, zscore(FLD)), N), N)": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "1": 1,
+    "12": 1,
+    "13": 1,
+    "14": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1,
+    "5": 1,
+    "6": 1,
+    "7": 1,
+    "8": 1
+   }
+  },
+  "rank_cs(delta(add(FLD, FLD), N))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "1": 1,
+    "12": 1,
+    "13": 1,
+    "14": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1,
+    "5": 1,
+    "6": 1,
+    "7": 1,
+    "8": 1
+   }
+  },
+  "rank_ts(rank_cs(zscore(FLD)), N)": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "1": 1,
+    "12": 1,
+    "13": 1,
+    "14": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1,
+    "5": 1,
+    "6": 1,
+    "7": 1,
+    "8": 1
+   }
+  },
+  "div(max(std(delta(FLD, N), N), N), div(sub(FLD, ma(FLD, N)), zscore(FLD)))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "1": 1,
+    "13": 1,
+    "14": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1,
+    "5": 1,
+    "6": 1,
+    "7": 1,
+    "8": 1
+   }
+  },
+  "delta(div(add(FLD, skew(FLD, N)), rank_cs(FLD)), N)": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "bt_err": 1
+   }
+  },
+  "ma(mul(rank_cs(FLD), rank_ts(rank_ts(FLD, N), N)), N)": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "1": 1,
+    "13": 1,
+    "14": 1,
+    "6": 1
+   }
+  },
+  "zscore(ma(add(FLD, FLD), N))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "1": 1,
+    "12": 1,
+    "13": 1,
+    "2": 1,
+    "4": 1,
+    "5": 1,
+    "6": 1,
+    "8": 1
+   }
+  },
+  "std(rank_cs(add(FLD, FLD)), N)": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "1": 1,
+    "12": 1,
+    "13": 1,
+    "2": 1,
+    "6": 1
+   }
+  },
+  "add(add(skew(FLD, N), zscore(skew(FLD, N))), zscore(std(FLD, N)))": {
+   "fails": 0,
+   "occupied": 1,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {}
+  },
+  "roc(add(rank_cs(sub(FLD, FLD)), min(roc(FLD, N), N)), N)": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "1": 1,
+    "12": 1,
+    "13": 1,
+    "14": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1,
+    "5": 1,
+    "6": 1,
+    "7": 1,
+    "8": 1
+   }
+  },
+  "div(rank_cs(skew(FLD, N)), ma(div(FLD, mul(FLD, FLD)), N))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "bt_err": 1
+   }
+  },
+  "zscore(std(mul(FLD, FLD), N))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "1": 1,
+    "12": 1,
+    "13": 1,
+    "14": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1,
+    "5": 1,
+    "6": 1,
+    "8": 1
+   }
+  },
+  "sub(rank_cs(ma(delta(FLD, N), N)), rank_cs(zscore(FLD)))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "1": 1,
+    "12": 1,
+    "13": 1,
+    "14": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1,
+    "5": 1,
+    "6": 1
+   }
+  },
+  "rank_ts(mul(FLD, roc(FLD, N)), N)": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 624,
+   "top_rules": {
+    "bt_err": 1
+   }
+  },
+  "roc(add(max(mul(FLD, FLD), N), sub(max(FLD, N), FLD)), N)": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "review": 1
+   }
+  },
+  "add(add(max(skew(FLD, N), N), rank_cs(FLD)), roc(add(rank_cs(FLD), rank_cs(FLD)), N))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "review": 1
+   }
+  },
+  "add(ma(zscore(std(FLD, N)), N), zscore(std(rank_cs(FLD), N)))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "review": 1
+   }
+  },
+  "delta(ma(rank_ts(mul(FLD, FLD), N), N), N)": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "review": 1
+   }
+  },
+  "sub(sub(rank_cs(ma(FLD, N)), rank_cs(skew(FLD, N))), mul(min(FLD, N), zscore(FLD)))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "review": 1
+   }
+  },
+  "rank_ts(rank_cs(sub(FLD, mul(FLD, FLD))), N)": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "review": 1
+   }
+  },
+  "zscore(sub(zscore(FLD), std(sub(FLD, FLD), N)))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "review": 1
+   }
+  },
+  "add(add(zscore(FLD), zscore(sub(FLD, FLD))), zscore(std(rank_cs(FLD), N)))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "review": 1
+   }
+  },
+  "add(add(zscore(zscore(FLD)), zscore(rank_cs(FLD))), zscore(std(rank_cs(FLD), N)))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "review": 1
+   }
+  },
+  "skew(add(max(div(FLD, FLD), N), FLD), N)": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "review": 1
+   }
+  },
+  "mul(skew(add(std(FLD, N), zscore(FLD)), N), add(delta(mul(FLD, FLD), N), rank_cs(roc(FLD, N))))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "review": 1
+   }
+  },
+  "mul(rank_cs(mul(FLD, FLD)), roc(delta(FLD, N), N))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "1": 1,
+    "12": 1,
+    "13": 1,
+    "14": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1,
+    "5": 1,
+    "6": 1,
+    "7": 1,
+    "8": 1
+   }
+  },
+  "div(rank_cs(FLD), skew(roc(sub(FLD, FLD), N), N))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "bt_err": 1
+   }
+  },
+  "max(sub(zscore(std(FLD, N)), FLD), N)": {
+   "fails": 0,
+   "occupied": 1,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {}
+  },
+  "max(mul(zscore(FLD), std(FLD, N)), N)": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "1": 1,
+    "12": 1,
+    "13": 1,
+    "14": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1,
+    "5": 1,
+    "6": 1,
+    "7": 1,
+    "8": 1
+   }
+  },
+  "roc(rank_ts(std(FLD, N), N), N)": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "bt_err": 1
+   }
+  },
+  "std(sub(rank_ts(FLD, N), rank_ts(zscore(FLD), N)), N)": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "1": 1,
+    "12": 1,
+    "13": 1,
+    "14": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1,
+    "5": 1,
+    "6": 1,
+    "7": 1,
+    "8": 1
+   }
+  },
+  "rank_cs(delta(max(std(FLD, N), N), N))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "1": 1,
+    "12": 1,
+    "13": 1,
+    "14": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1,
+    "5": 1,
+    "6": 1,
+    "7": 1,
+    "8": 1
+   }
+  },
+  "add(rank_cs(FLD), sub(rank_cs(skew(FLD, N)), rank_cs(zscore(FLD))))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "1": 1,
+    "2": 1,
+    "6": 1
+   }
+  },
+  "sub(delta(FLD, N), roc(min(FLD, N), N))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "1": 1,
+    "12": 1,
+    "13": 1,
+    "14": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1,
+    "5": 1,
+    "6": 1,
+    "7": 1,
+    "8": 1
+   }
+  },
+  "max(std(div(roc(FLD, N), delta(FLD, N)), N), N)": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "bt_err": 1
+   }
+  },
+  "add(rank_cs(ma(FLD, N)), rank_cs(ma(roc(FLD, N), N)))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "1": 1,
+    "12": 1,
+    "13": 1,
+    "14": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1,
+    "5": 1,
+    "6": 1,
+    "8": 1
+   }
+  },
+  "roc(div(FLD, delta(FLD, N)), N)": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "1": 1,
+    "12": 1,
+    "13": 1,
+    "14": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1,
+    "5": 1,
+    "6": 1,
+    "7": 1,
+    "8": 1
+   }
+  },
+  "zscore(sub(add(FLD, FLD), sub(FLD, zscore(FLD))))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "1": 1,
+    "2": 1,
+    "6": 1
+   }
+  },
+  "sub(max(FLD, N), std(FLD, N))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "bt_err": 1
+   }
+  },
+  "add(rank_cs(ma(FLD, N)), rank_cs(delta(ma(FLD, N), N)))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "1": 1,
+    "12": 1,
+    "13": 1,
+    "2": 1,
+    "6": 1
+   }
+  },
+  "sub(rank_ts(std(roc(FLD, N), N), N), zscore(FLD))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "12": 1,
+    "13": 1,
+    "2": 1,
+    "4": 1,
+    "6": 1
+   }
+  },
+  "add(zscore(ma(mul(FLD, FLD), N)), zscore(roc(FLD, N)))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "1": 1,
+    "12": 1,
+    "13": 1,
+    "14": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1,
+    "5": 1,
+    "6": 1,
+    "7": 1,
+    "8": 1
+   }
+  },
+  "add(add(rank_cs(skew(FLD, N)), rank_cs(sub(FLD, FLD))), std(zscore(FLD), N))": {
+   "fails": 0,
+   "occupied": 1,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {}
+  },
+  "rank_cs(mul(rank_ts(FLD, N), roc(FLD, N)))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "1": 1,
+    "12": 1,
+    "13": 1,
+    "14": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1,
+    "5": 1,
+    "6": 1,
+    "7": 1,
+    "8": 1
+   }
+  },
+  "sub(rank_ts(std(FLD, N), N), rank_cs(zscore(FLD)))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "1": 1,
+    "12": 1,
+    "13": 1,
+    "2": 1,
+    "6": 1
+   }
+  },
+  "delta(mul(rank_ts(min(FLD, N), N), roc(FLD, N)), N)": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "1": 1,
+    "12": 1,
+    "13": 1,
+    "2": 1,
+    "6": 1
+   }
+  },
+  "rank_ts(std(max(FLD, N), N), N)": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "1": 1,
+    "12": 1,
+    "13": 1,
+    "14": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1,
+    "5": 1,
+    "6": 1,
+    "7": 1,
+    "8": 1
+   }
+  },
+  "skew(skew(sub(FLD, rank_ts(FLD, N)), N), N)": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "1": 1,
+    "13": 1,
+    "14": 1,
+    "2": 1,
+    "3": 1,
+    "4": 1,
+    "5": 1,
+    "6": 1
+   }
+  },
+  "add(rank_cs(ma(FLD, N)), sub(rank_cs(roc(FLD, N)), rank_cs(zscore(FLD))))": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
+   "top_rules": {
+    "1": 1,
+    "2": 1,
+    "6": 1
+   }
+  },
+  "roc(sub(zscore(FLD), roc(FLD, N)), N)": {
+   "fails": 1,
+   "occupied": 0,
+   "stored": 0,
+   "last_iter": 625,
    "top_rules": {
     "1": 1,
     "12": 1,
