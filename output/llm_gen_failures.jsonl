@@ -21,3 +21,4 @@
 {"mech": "ts_vol_compress", "reason": "字段越界: ['close']", "raw": "rank_cs(sub(ma(std(close, 10), 20), std(close, 10)))"}
 {"mech": "cs_growth", "reason": "parse/validate: IndexError: list index out of range", "raw": "add(rank_cs(roc(profit_growth, 20)), rank_cs(sub(0, zscore(ps))))"}
 {"mech": "ts_candle", "reason": "parse/validate: IndexError: list index out of range", "raw": "sub(zscore(rank_ts(mul(amplitude, sub(1, div(sub(adj_close, adj_low), sub(adj_high, adj_low)))), 5)), zscore(rank_cs(up_shadow, 20)))"}
+{"mech": "ts_breakout", "reason": "字段越界: ['high', 'low']", "raw": "zscore(sub(ma(high, 20), ma(low, 20)))"}

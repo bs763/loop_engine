@@ -86,12 +86,24 @@ def op_skew(p: pd.DataFrame, n: int) -> pd.DataFrame:
 
 
 def _ts_rank_last(w: np.ndarray) -> float:
-    """窗口内最后一个值的升序排名(0-based)归一到 [0,1]:(rank)/(n-1)。"""
-    n = len(w)
-    if n <= 1:
+    """窗口内最后一个值的升序排名(0-based)归一到 [0,1]:(rank)/(有效数-1)。
+
+    两类退化窗保护(2026-08-27,塌陷病因第五种,实测轮628 67%→13%):
+    ① 窗口全等(季更字段的 std 在季中恒常数)→ 稳定排序把末元素排在 0 位 → 输出恰 0,
+      下游 div 除 0 消毒成 NaN 整月蒸发 → 输出 0.5(中位,与 zscore sd=0 同型);
+    ② 窗口含 NaN(季更切换断档)→ argsort 把 NaN 排最后,末元素名次被系统性压低
+      (4NaN+1值窗输出 0)→ 先剔除 NaN 再排名,末元素本身 NaN 则返回 NaN。"""
+    last = w[-1]
+    if np.isnan(last):
         return np.nan
-    order = w.argsort(kind="stable")  # 升序位置
-    rank0 = int(np.where(order == n - 1)[0][0])  # 末元素在排序后的位次
+    vals = w[~np.isnan(w)]                # 只对有效值排名
+    n = len(vals)
+    if n <= 1:
+        return 0.5                        # 仅末值有效(无参照)→ 中位
+    if np.all(vals == last):
+        return 0.5                        # 常数窗(全并列)→ 中位
+    order = np.argsort(vals, kind="stable")
+    rank0 = int(np.where(order == n - 1)[0][0])   # 末元素在有效值中的位次
     return rank0 / (n - 1)
 
 

@@ -132,7 +132,8 @@ rank_ts 窗口 120 ∈ (5,120) ✓ ｜ 全 PIT 后视无未来函数 ✓ ｜ 无
 |---|---|---|
 | `ts_zscore(x, n)` | 5–120 | 个股相对自身历史偏离；对季更基本面（roe/op_margin）公告跳变后的位置感特别清晰。**注意与截面 zscore 区分，勿当重复** |
 | `ts_sum(x, n)` | 5–250 | `sum(log_amount,20)` 累计量能、`sum(overnight,10)` 累计隔夜，语义直接稳定 |
-| `ts_decay_linear(x, n)` | 3–120 | 近期加权平滑；对公告阶梯做"消化平滑"，也是控换手的表达手段 |
+
+> `ts_decay_linear` 已从推荐清单移除（用户 2026-08-28 拍板，见 §4）——其"时间平滑/控换手"意图已被回测端覆盖，无需表达式层再造。
 
 ### 🥉 第三批：可选（无需新数据）
 | 算子 | 理由 |
@@ -148,6 +149,7 @@ rank_ts 窗口 120 ∈ (5,120) ✓ ｜ 全 PIT 后视无未来函数 ✓ ｜ 无
 |---|---|
 | `delay(x, n)` | 全链路已零未来函数（PIT+ASOF），表达式层引入 delay 易制造未来函数/语义混乱 |
 | `neg(x)` | 不需要——单因子反转由 alphalab `direction: auto` 吸收；混合分支反转由 `sub` 覆盖（见 §2.1） |
+| `ts_decay_linear(x, n)` | **不需要（用户 2026-08-28 拍板）**——其价值①控换手：用户不设显式换手门槛，多头费后自然淘汰高换手；②时间平滑/容忍短期噪声：回测端 IC 计算已带 `decay_max_lag=10`（IC 对未来多期衰减加权）覆盖该意图；③季更字段平滑：ma 已够用。注：`decay_max_lag`（IC 口径）与 `ts_decay_linear`（信号构造）严格说非同一物，但"这层意图回测端已覆盖"的权衡成立，不引入 |
 | `group_rank / indneutralize(x, g)` | **暂不做（用户 2026-08-28 拍板）**——虽为世坤黄金组合（`group_rank(ts_rank(signal, N), subindustry)` 通过率最高），但依赖字段层新增行业/分组数据，短期不投入；如未来引入行业字段再评估 |
 | `trade_when / normalize / scale / winsorize` | 交易行为控制与回测前处理，alphalab 层已覆盖（winsorize+standardize+中性化），表达式层重复职责 |
 
