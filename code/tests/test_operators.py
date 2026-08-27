@@ -204,9 +204,9 @@ def test_skew_matches_series_skew():
     # 完整窗口不得有幽灵 NaN
     complete = df.rolling(20).count() == 20
     assert not (complete & r.isna()).any().any()
-    # 常数窗口 → NaN(与 pandas 口径一致)
+    # 常数窗口 → 0(2026-08-27 语义变更:对称退化极限,非 NaN——季更字段季中覆盖保护)
     const = pd.DataFrame({"A": [3.0] * 30}, index=pd.date_range("2020-01-01", periods=30))
-    assert np.isnan(op_skew(const, 20).iloc[25, 0])
+    assert op_skew(const, 20).iloc[25, 0] == 0.0
 
 
 def test_zscore_zero_sd_outputs_zero():
