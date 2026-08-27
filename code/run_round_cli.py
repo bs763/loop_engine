@@ -182,6 +182,10 @@ def main() -> None:
             parts = [f"{op} {stats.gen_src_pass_review.get(op, 0)}/{n}"
                      for op, n in sorted(stats.gen_src_total.items(), key=lambda kv: -kv[1])]
             print(f"过审查(按源): " + ", ".join(parts))
+        if stats.gen_src_dedup:
+            parts2 = [f"{op}×{v}" for op, v in
+                      sorted(stats.gen_src_dedup.items(), key=lambda kv: -kv[1])]
+            print(f"去重拦截(按源): " + ", ".join(parts2))
     print(f"STATUS: iter={stats.iteration} tested={len(cp.tested_hashes)} "
           f"stored={stats.stored_total} new={stats.n_pass_filters} "
           f"elapsed={stats.elapsed_sec/60:.1f}min workers={args.workers}"
