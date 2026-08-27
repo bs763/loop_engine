@@ -155,15 +155,17 @@ MECHANISMS: list[dict] = [
     {"id": "cs_dupont", "category": "cs", "name": "杜邦效率分解",
      "prototypes": ["高利润率×高周转双优", "周转率改善动量", "利润率与周转率错配修复"],
      "hint": "杜邦分解:ROE=净利率×资产周转率×杠杆——op_margin/np_margin 与 asset_turn "
-             "的高水平与改善(roc 作用于季更阶梯即改善动量)代表经营效率;低 debt_ratio 的"
-             "高效企业更可持续。【重要】优先【基本面×价量混血】形态(各分支 rank_cs/zscore "
-             "标准化后相加);季更字段做时序变化用 roc/ma。",
+             "的高水平与改善(delta 作用于季更阶梯即改善动量)代表经营效率;低 debt_ratio 的"
+             "高效企业更可持续。【重要】①优先【基本面×价量混血】形态(各分支 rank_cs/zscore "
+             "标准化后相加);②季更字段做变化【只用 delta,禁用 roc】——roc 做除法,阶梯"
+             "字段在披露切换月滞后值过零会产生覆盖塌陷(实测);平滑用 ma。",
      "field_hints": ["op_margin", "np_margin", "asset_turn", "debt_ratio"]},
     {"id": "cs_cashflow", "category": "cs", "name": "现金流质量",
      "prototypes": ["现金流含量溢价", "现金流与利润背离", "现金创造效率改善"],
      "hint": "盈利的质量在于现金流:ocf_margin(OCF/营收)高且与净利率匹配=利润含金量高;"
              "现金流与利润背离(利润高但 OCF 弱)是财务质量恶化信号;ocf_asset 的改善"
-             "动量代表现金创造效率提升。【重要】优先【基本面×价量混血】形态。",
+             "动量代表现金创造效率提升。【重要】①优先【基本面×价量混血】形态;②季更字段"
+             "做变化只用 delta(禁用 roc——除法在披露切换月产生覆盖塌陷);平滑用 ma。",
      "field_hints": ["ocf_margin", "ocf_asset", "np_margin"]},
 ]
 

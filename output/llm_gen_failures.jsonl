@@ -18,3 +18,4 @@
 {"mech": "ts_breakout", "reason": "字段越界: ['close']", "raw": "zscore(sub(roc(close, 20), rank_cs(ma(amplitude, 20))))"}
 {"mech": "ts_candle", "reason": "字段越界: ['close']", "raw": "zscore(sub(ma(close, 20), rank_cs(up_shadow)))"}
 {"mech": "ts_vol_state", "reason": "字段越界: ['high', 'low']", "raw": "rank_ts(zscore(sub(amplitude, div(up_shadow, sub(high, low)))), 20)"}
+{"mech": "ts_vol_compress", "reason": "字段越界: ['close']", "raw": "rank_cs(sub(ma(std(close, 10), 20), std(close, 10)))"}
