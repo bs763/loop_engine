@@ -52,3 +52,4 @@
 - [2026-08-27] 第二次干旱停机(轮607,stuck=15):与首次(8/25)不同,这是丰收后exhaustion——两日入库18个换掉20+个后,库内强因子密度高,#9相关性与保优淘劣×1.05门槛大量拦截(相关性高×30+/轮),属"当前字段/结构词汇表下搜索空间充分开采"信号。库况历史最佳:OOS中位+0.0587/负0%/PnL违规48->30。方向:扩字段(income/balance/cashflow三表自算二期)或收割。
 - [2026-08-27] 基本面二期扩字段(用户拍板B):income/balance_sheet/cash_flow 三表跨表比率 6 字段(op_margin/asset_turn/ocf_asset/ocf_margin/debt_ratio/np_margin,杜邦+现金流族)+2 张机制卡(cs_dupont/cs_cashflow,boost 6)。PIT 阶梯实测通过(op_margin 每股每年 4 distinct)。README 增「数据字段与机制族」节同步文档。
 - [2026-08-27] 轮608回测异常根因(用户问):6条覆盖率塌陷全部含 roc(季更阶梯字段,n)——roc做除法,阶梯字段在披露切换月(2025-06=年报/一季报TTM刷新期)大量滞后值过零→0/0→NaN聚簇;原始字段覆盖94%平稳,塌陷纯由算子引入。与DeepSeek轮547/534拒roc(bm)同源。修复:cs_dupont/cs_cashflow卡hint改「季更字段做变化只用delta禁用roc」(差分有界安全,与一期quality卡的roc指引区分:quality卡指roe类水平平滑,这里明确禁roc)。
+- [2026-08-27] 分支支配简化拒因曾丢原式(用户问"简化后不足是啥"时暴露):台账只记简化后支配支(如 zscore(op_margin)),无法溯源原始 add/sub 表达式 → 两类拒因(深度不足/与已测重复)消息附原式。教训同族:凡「转换后拒绝」都要记转换前形态,否则诊断只能靠猜。
