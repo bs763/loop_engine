@@ -218,9 +218,11 @@ def run_round(*, checkpoint: Checkpoint, evolver: Evolver, evaluator: Evaluator,
                 if node2 is not node:            # 分支支配 → 取支配支(可能变浅/与已测重复)
                     h2 = node2.expr_hash()
                     if node2.depth() < 3:
-                        return (node2, h, "ValueError: 分支支配简化后深度不足")
+                        return (node2, h, "ValueError: 分支支配简化后深度不足"
+                                f"(原式 {node.to_str()[:60]})")
                     if checkpoint.is_tested(h2):
-                        return (node2, h, "ValueError: 分支支配简化后与已测重复")
+                        return (node2, h, "ValueError: 分支支配简化后与已测重复"
+                                f"(原式 {node.to_str()[:60]})")
                     node, h = node2, h2
             else:
                 panel = evaluate(node, field_panels)
