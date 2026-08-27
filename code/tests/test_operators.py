@@ -225,3 +225,22 @@ def test_zscore_zero_sd_outputs_zero():
     assert z.iloc[1].abs().sum() > 0                   # 正常截面仍有离散
     assert np.isnan(z.iloc[2]["a"])                    # 原始 NaN 保留
     assert z.iloc[2][["b", "c"]].notna().all()
+
+
+def test_skew_constant_window_outputs_zero():
+    """skew m2=0 保护(2026-08-27,与 zscore sd=0 同型):常数窗(季更字段季中)→ 输出 0
+    而非 0/0=NaN;正常窗口仍有离散值;窗口不足仍 NaN。"""
+    import numpy as np
+    import pandas as pd
+    from engine.operators import op_skew
+    idx = pd.date_range("2024-01-01", periods=60)
+    const = pd.DataFrame(3.0, index=idx, columns=["a", "b"])
+    r = op_skew(const, 20)
+    assert r.iloc[25:].notna().all().all()          # 常数窗不再 NaN
+    assert (r.iloc[25:] == 0).all().all()           # 输出 0
+    assert r.iloc[:19].isna().all().all()           # 窗口不足仍 NaN
+    rng = np.random.default_rng(0)
+    vary = pd.DataFrame(rng.normal(0, 1, (60, 2)), index=idx, columns=["a", "b"])
+    rv = op_skew(vary, 20)
+    assert rv.iloc[25:].notna().all().all()
+    assert rv.abs().iloc[25:].mean().mean() > 0.05  # 非常数输入有非常数输出

@@ -55,6 +55,10 @@ def op_skew(p: pd.DataFrame, n: int) -> pd.DataFrame:
     不用 pandas rolling().skew():实测其在大量「窗口完整、方差非零」的窗口上返回 NaN
     (2026-08-17 排查:2018-2025 adj_close 面板 53 万格,rolling=NaN 而 Series.skew() 正常),
     导致 skew(·,40) 覆盖率被压到 54%。此处用滚动一/二/三阶矩和实现,语义精确等价。
+
+    m2=0(常数窗)→ 输出 0(2026-08-27,与 op_zscore sd=0 同型修复):季更阶梯字段在
+    季中的窗口几乎全常数,m2=0 → 0/0=NaN 曾致整月覆盖塌陷(实测 skew(op_margin,20)
+    单独覆盖仅 32%)。对称退化的极限 = 0,数学上自然;对排名/IC 无害。
     """
     s1 = p.rolling(n, min_periods=n).sum()
     s2 = (p * p).rolling(n, min_periods=n).sum()
@@ -62,7 +66,9 @@ def op_skew(p: pd.DataFrame, n: int) -> pd.DataFrame:
     m2 = (s2 - s1 * s1 / n) / n
     m3 = (s3 - 3.0 * s1 * s2 / n + 2.0 * s1 ** 3 / n ** 2) / n
     with np.errstate(divide="ignore", invalid="ignore"):
-        g1 = m3 / m2.pow(1.5)          # m2=0(常数窗)→ 0/0=NaN,与 pandas 行为一致
+        g1 = m3 / m2.pow(1.5)          # m2=0(常数窗)→ 0/0=NaN
+    g1 = g1.fillna(0).where(m2.notna() & p.rolling(n, min_periods=n).count().gt(0))
+    # m2 为 NaN(窗口不足)→ 保持 NaN;m2=0(常数窗)→ 0
     adj = float(np.sqrt(n * (n - 1)) / (n - 2))   # G1 调整系数(窗口范围 ≥10,n>2 恒成立)
     return g1 * adj
 
