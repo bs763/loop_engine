@@ -42,3 +42,4 @@
 {"iter": 594, "expr": "add(add(rank_cs(skew(adj_close, 40)), rank_cs(skew(intraday, 40))), rank_cs(sub(down_shadow, zscore(div_yield))))", "accept": false, "raw": "REJECT: sub(down_shadow, zscore(div_yield)) 中下影线占比（0~1）与股息率zscore量纲不匹配，且二者逻辑无关、经济含义不自洽；收益分布无单年集中/近零依赖。"}
 {"iter": 596, "expr": "add(ma(skew(adj_close, 40), 250), rank_cs(skew(adj_close, 40)))", "accept": false, "raw": "REJECT: skew直接作用于非平稳的adj_close价格水平而非收益/收益率，经济含义不自洽且截面不可比。"}
 {"iter": 611, "expr": "add(add(rank_cs(adj_high), rank_cs(log_mv)), rank_cs(skew(adj_close, 40)))", "accept": true, "raw": "ACCEPT: 逐年多空无单年集中（2018年+20.6%<其余54%）且多头超额年化4.41%>1%，三因子均为截面排名可加，无量纲错配或除零/过度平滑问题。"}
+{"iter": 635, "expr": "sub(zscore(std(log_amount, 20)), rank_cs(adj_high))", "accept": false, "raw": "REJECT: 逐年多空核对通过，但 adj_high 未在给定原子字段中定义，且绝对价格截面排名与 zscore 量纲不匹配。"}
